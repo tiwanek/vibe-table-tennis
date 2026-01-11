@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  mmr       Int      @default(1000)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  matchesAsPlayer1   Match[]            @relation("Player1")
+  matchesAsPlayer2   Match[]            @relation("Player2")
+  createdMatches     Match[]            @relation("MatchCreator")
+  confirmedMatches   Match[]            @relation("MatchConfirmer")
+  createdTournaments Tournament[]       @relation("TournamentCreator")
+  tournamentPlayers  TournamentPlayer[]
+  passwordResets     PasswordReset[]
+}
+
+model Match {
+  id              String   @id @default(uuid())
+  player1Id       String
+  player2Id       String
+  player1Score    Int?
+  player2Score    Int?
+  status          String   @default("PENDING") // PENDING, AWAITING_CONFIRM, CONFIRMED
+  createdById     String
+  confirmedById   String?
+  tournamentId    String?
+  tournamentStage String?
+  groupName       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  player1     User        @relation("Player1", fields: [player1Id], references: [id])
+  player2     User        @relation("Player2", fields: [player2Id], references: [id])
+  createdBy   User        @relation("MatchCreator", fields: [createdById], references: [id])
+  confirmedBy User?       @relation("MatchConfirmer", fields: [confirmedById], references: [id])
+  tournament  Tournament? @relation(fields: [tournamentId], references: [id])
+}
+
+model Tournament {
+  id           String   @id @default(uuid())
+  name         String
+  type         String   // SWISS, GROUP_ELIMINATION
+  status       String   @default("OPEN") // OPEN, LIVE, FINISHED
+  creatorId    String
+  currentRound Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  creator User               @relation("TournamentCreator", fields: [creatorId], references: [id])
+  matches Match[]
+  players TournamentPlayer[]
+}
+
+model TournamentPlayer {
+  id           String  @id @default(uuid())
+  tournamentId String
+  userId       String
+  groupName    String?
+  eliminated   Boolean @default(false)
+  seed         Int?
+
+  tournament Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@unique([tournamentId, userId])
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
