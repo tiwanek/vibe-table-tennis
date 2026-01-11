@@ -117,12 +117,48 @@ npm run lint
 ```bash
 # Build both client and server
 npm run build
+```
 
-# Build Docker image
-npm run docker:build
+## Docker Deployment
 
-# Run with Docker Compose
-npm run docker:run
+### Quick Start (Simple)
+
+```bash
+# Build and run with Docker Compose (app only, port 3001)
+docker-compose -f docker-compose.simple.yml up --build
+
+# Access at http://localhost:3001
+```
+
+### Full Production Setup (with Nginx)
+
+```bash
+# Set your JWT secret
+export JWT_SECRET="your-secure-secret-here"
+
+# Build and run
+docker-compose up --build
+
+# Access at http://localhost (port 80)
+```
+
+### Docker Commands
+
+```bash
+# Build image only
+docker build -t vibe-table-tennis .
+
+# Run standalone container
+docker run -p 3001:3001 -e JWT_SECRET=your-secret vibe-table-tennis
+
+# View logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+
+# Remove data volume (reset database)
+docker-compose down -v
 ```
 
 ## API Endpoints
