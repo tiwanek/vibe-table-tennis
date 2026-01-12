@@ -328,5 +328,7 @@ export async function createMatchViaUI(
 
 export async function confirmMatchViaUI(page: Page): Promise<void> {
   await page.click('button:has-text("Confirm")')
-  await page.waitForTimeout(500)
+  // Wait for the mutation to complete and UI to refresh
+  // The Confirm button should disappear after successful confirmation
+  await page.waitForTimeout(1000)
 }
