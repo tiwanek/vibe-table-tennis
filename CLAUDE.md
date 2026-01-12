@@ -22,7 +22,8 @@ A web application for managing table tennis tournaments and tracking player MMR 
 - **bcrypt** - Password hashing
 
 ### Development Tools
-- **Vitest** - Testing
+- **Vitest** - Unit testing
+- **Playwright** - E2E testing
 - **ESLint** + **Prettier** - Code quality
 - **Docker** - Production deployment
 
@@ -52,6 +53,13 @@ vibe-table-tennis/
 │   │   └── schema.prisma       # Database schema
 │   ├── package.json
 │   └── tsconfig.json
+├── e2e/                        # Playwright E2E tests
+│   ├── fixtures/
+│   │   └── test-utils.ts       # Test helper functions
+│   ├── standalone-match.spec.ts
+│   ├── swiss-tournament.spec.ts
+│   └── group-elimination.spec.ts
+├── playwright.config.ts        # Playwright configuration
 ├── docker-compose.yml
 ├── Dockerfile
 ├── CLAUDE.md                   # This file
@@ -110,7 +118,7 @@ npm run dev:server  # Backend on http://localhost:3001
 ### Testing
 
 ```bash
-# Run all tests
+# Run all unit tests
 npm test
 
 # Run client tests only
@@ -119,6 +127,37 @@ npm run test:client
 # Run server tests only
 npm run test:server
 ```
+
+### E2E Testing
+
+End-to-end tests use Playwright and test complete user workflows.
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run specific test file
+npm run test:e2e -- e2e/standalone-match.spec.ts
+npm run test:e2e -- e2e/swiss-tournament.spec.ts
+npm run test:e2e -- e2e/group-elimination.spec.ts
+
+# Run tests by name pattern
+npm run test:e2e -- -g "Swiss tournament"
+
+# Run with UI (interactive mode)
+npm run test:e2e:ui
+
+# Run headed (see browser)
+npm run test:e2e:headed
+
+# Debug a test
+npm run test:e2e -- --debug
+```
+
+E2E tests automatically start both client and server before running. Test files are in `/e2e`:
+- `standalone-match.spec.ts` - Two users play a match with score confirmation and MMR changes
+- `swiss-tournament.spec.ts` - 8 players complete a Swiss tournament through all rounds
+- `group-elimination.spec.ts` - 8 players complete a group stage tournament
 
 ### Code Formatting
 
