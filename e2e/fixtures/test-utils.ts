@@ -309,21 +309,25 @@ export async function createMatchViaUI(
   // Click "New Match" button
   await page.click('button:has-text("New Match")')
 
+  // Wait for the dialog form to appear
+  await page.waitForSelector('text=Record New Match')
+
   // Select opponent
   await page.click('[role="combobox"]')
   await page.click(`[role="option"]:has-text("${opponentUsername}")`)
 
   // Enter scores if provided
   if (player1Score !== undefined && player2Score !== undefined) {
-    // Find score inputs by their labels
-    const scoreInputs = page.locator('input[type="number"][placeholder="0"]')
-    await scoreInputs.nth(0).fill(player1Score.toString())
-    await scoreInputs.nth(1).fill(player2Score.toString())
+    // Wait for score inputs to be visible, then fill them
+    await page.waitForSelector('input[placeholder="0"]')
+    // Use label-based selection for more reliability
+    await page.locator('input[placeholder="0"]').first().fill(player1Score.toString())
+    await page.locator('input[placeholder="0"]').last().fill(player2Score.toString())
   }
 
   // Submit
   await page.click('button:has-text("Create Match")')
-  await page.waitForTimeout(500) // Wait for mutation to complete
+  await page.waitForTimeout(1000) // Wait for mutation to complete
 }
 
 export async function confirmMatchViaUI(page: Page): Promise<void> {
