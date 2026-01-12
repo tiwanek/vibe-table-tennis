@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { prisma } from '../index.js'
 import { authenticate, AuthRequest } from '../middleware/auth.js'
 import { AppError } from '../middleware/errorHandler.js'
-import { generateSwissPairings, generateGroupStage, generateEliminationBracket } from '../services/tournament.js'
+import { generateSwissPairings, generateGroupStage, generateEliminationBracket, calculateSwissRounds } from '../services/tournament.js'
 
 const router = Router()
 
@@ -341,11 +341,23 @@ router.post('/:id/advance', authenticate, async (req: AuthRequest, res: Response
     // Calculate standings and generate next round pairings
     const standings = calculateSwissStandings(tournament.matches, tournament.players)
     const nextRound = (tournament.currentRound || 1) + 1
+    const maxRounds = calculateSwissRounds(tournament.players.length)
+
+    // Check if tournament is complete (all rounds played)
+    if (nextRound > maxRounds) {
+      // Tournament is finished
+      await prisma.tournament.update({
+        where: { id: tournament.id },
+        data: { status: 'FINISHED' },
+      })
+
+      return res.json({ message: 'Tournament finished', standings })
+    }
 
     const newMatches = generateSwissPairings(standings, nextRound)
 
     if (newMatches.length === 0) {
-      // Tournament is finished
+      // No more valid pairings, tournament is finished
       await prisma.tournament.update({
         where: { id: tournament.id },
         data: { status: 'FINISHED' },
