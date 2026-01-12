@@ -78,6 +78,24 @@ npx prisma generate
 npx prisma db push
 ```
 
+### Database Setup
+
+The application uses SQLite stored at `server/prisma/dev.db`. The database file is created automatically when you run `npx prisma db push`.
+
+```bash
+# Create/update database schema (run from server directory)
+cd server
+npx prisma db push
+
+# Reset database (deletes all data)
+npx prisma db push --force-reset
+
+# View database in browser
+npx prisma studio
+```
+
+The database persists between server restarts. To start fresh, delete `server/prisma/dev.db` and run `npx prisma db push` again.
+
 ### Development
 
 ```bash
