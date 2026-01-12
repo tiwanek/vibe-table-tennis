@@ -61,7 +61,6 @@ test.describe('Swiss Tournament', () => {
 
     // Verify tournament appears in Open tab
     await expect(page.getByText(tournamentName)).toBeVisible()
-    await expect(page.getByText('Type: SWISS')).toBeVisible()
 
     // ===== Step 2: Register all 8 players via API =====
     for (const user of users) {

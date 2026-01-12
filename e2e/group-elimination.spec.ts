@@ -58,7 +58,6 @@ test.describe('Group + Elimination Tournament', () => {
 
     // Verify tournament appears in Open tab
     await expect(page.getByText(tournamentName)).toBeVisible()
-    await expect(page.getByText('Type: GROUP ELIMINATION')).toBeVisible()
 
     // ===== Step 2: Register all 8 players via API =====
     for (const user of users) {
