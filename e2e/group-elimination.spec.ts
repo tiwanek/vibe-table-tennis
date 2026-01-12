@@ -30,6 +30,9 @@ test.describe('Group + Elimination Tournament', () => {
     await loginAs(page, creator.email, creator.password)
     await page.goto('/tournaments')
 
+    // Wait for page to load
+    await page.waitForSelector('h1:has-text("Tournaments")')
+
     // Click "New Tournament"
     await page.click('button:has-text("New Tournament")')
 
@@ -55,7 +58,7 @@ test.describe('Group + Elimination Tournament', () => {
 
     // Verify tournament appears in Open tab
     await expect(page.getByText(tournamentName)).toBeVisible()
-    await expect(page.getByText('GROUP')).toBeVisible()
+    await expect(page.getByText('Type: GROUP ELIMINATION')).toBeVisible()
 
     // ===== Step 2: Register all 8 players via API =====
     for (const user of users) {
@@ -139,6 +142,7 @@ test.describe('Group + Elimination Tournament', () => {
     // Create tournament
     await loginAs(page, creator.email, creator.password)
     await page.goto('/tournaments')
+    await page.waitForSelector('h1:has-text("Tournaments")')
     await page.click('button:has-text("New Tournament")')
     await page.fill('input[placeholder="Friday Night Tournament"]', tournamentName)
     await page.click('[role="combobox"]')

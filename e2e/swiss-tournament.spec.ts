@@ -33,6 +33,9 @@ test.describe('Swiss Tournament', () => {
     await loginAs(page, creator.email, creator.password)
     await page.goto('/tournaments')
 
+    // Wait for page to load
+    await page.waitForSelector('h1:has-text("Tournaments")')
+
     // Click "New Tournament"
     await page.click('button:has-text("New Tournament")')
 
@@ -58,7 +61,7 @@ test.describe('Swiss Tournament', () => {
 
     // Verify tournament appears in Open tab
     await expect(page.getByText(tournamentName)).toBeVisible()
-    await expect(page.getByText('SWISS')).toBeVisible()
+    await expect(page.getByText('Type: SWISS')).toBeVisible()
 
     // ===== Step 2: Register all 8 players via API =====
     for (const user of users) {

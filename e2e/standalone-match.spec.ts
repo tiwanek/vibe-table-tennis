@@ -32,7 +32,7 @@ test.describe('Standalone Match', () => {
     await createMatchViaUI(page, userB.username, 11, 5)
 
     // Verify match appears in Pending tab
-    await expect(page.getByText('Pending')).toBeVisible()
+    await expect(page.getByRole('tab', { name: /Pending/ })).toBeVisible()
     await expect(page.getByText(`${userA.username} vs ${userB.username}`)).toBeVisible()
     await expect(page.getByText('Score: 11 - 5')).toBeVisible()
     await expect(page.getByText('AWAITING CONFIRM')).toBeVisible()
@@ -103,23 +103,14 @@ test.describe('Standalone Match', () => {
     await loginAs(page, userA.email, userA.password)
     await page.goto('/matches')
 
-    // Create a new match with scores
-    const userC = await test.step('Create another user', async () => {
-      const { request } = await test.info().annotations.find(() => true) as never
-      // This test uses the existing userB for simplicity
-      return userB
-    })
-
     await createMatchViaUI(page, userB.username, 11, 8)
 
     // UserA should NOT see Confirm button on the match they just created
-    const confirmButton = page.locator('button:has-text("Confirm")').first()
+    // The match should be in pending tab with AWAITING_CONFIRM status
+    await expect(page.getByText('AWAITING CONFIRM')).toBeVisible()
 
-    // Either button doesn't exist or there's a different match
-    const matchCards = page.locator('[class*="Card"]').filter({ hasText: 'AWAITING CONFIRM' })
-    const cardCount = await matchCards.count()
-
-    // For any AWAITING_CONFIRM match where UserA submitted, no Confirm button should show
-    // This is implicitly verified by the first test
+    // UserA should NOT see a Confirm button for their own submission
+    const pendingTab = page.locator('[role="tabpanel"]').first()
+    await expect(pendingTab.getByRole('button', { name: 'Confirm' })).not.toBeVisible()
   })
 })
