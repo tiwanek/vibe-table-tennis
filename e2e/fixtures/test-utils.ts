@@ -331,8 +331,12 @@ export async function createMatchViaUI(
 }
 
 export async function confirmMatchViaUI(page: Page): Promise<void> {
-  await page.click('button:has-text("Confirm")')
+  // Click the Confirm button in the pending matches panel
+  const confirmButton = page.locator('[role="tabpanel"]').first().getByRole('button', { name: 'Confirm' })
+  await confirmButton.click()
   // Wait for the mutation to complete and UI to refresh
-  // The Confirm button should disappear after successful confirmation
-  await page.waitForTimeout(1000)
+  await page.waitForTimeout(1500)
+  // Refetch the page to ensure data is fresh
+  await page.reload()
+  await page.waitForSelector('h1:has-text("Matches")')
 }
