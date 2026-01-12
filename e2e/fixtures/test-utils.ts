@@ -90,6 +90,8 @@ export async function loginAs(page: Page, email: string, password: string): Prom
   await page.fill('input[id="password"]', password)
   await page.click('button[type="submit"]')
   await page.waitForURL('/')
+  // Wait for the page to fully load
+  await page.waitForSelector('text=Welcome')
 }
 
 export async function logout(page: Page): Promise<void> {
@@ -302,6 +304,8 @@ export async function createMatchViaUI(
   player1Score?: number,
   player2Score?: number
 ): Promise<void> {
+  // Wait for page to load (not showing loading state)
+  await page.waitForSelector('h1:has-text("Matches")')
   // Click "New Match" button
   await page.click('button:has-text("New Match")')
 
@@ -311,8 +315,10 @@ export async function createMatchViaUI(
 
   // Enter scores if provided
   if (player1Score !== undefined && player2Score !== undefined) {
-    await page.fill('input[placeholder="0"]:first-of-type', player1Score.toString())
-    await page.fill('input[placeholder="0"]:last-of-type', player2Score.toString())
+    // Find score inputs by their labels
+    const scoreInputs = page.locator('input[type="number"][placeholder="0"]')
+    await scoreInputs.nth(0).fill(player1Score.toString())
+    await scoreInputs.nth(1).fill(player2Score.toString())
   }
 
   // Submit
