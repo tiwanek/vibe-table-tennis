@@ -7,6 +7,7 @@ import {
   getTournamentMatchesViaAPI,
   submitScoreViaAPI,
   confirmMatchViaAPI,
+  advanceRoundViaAPI,
   TestUser,
   Match,
   uniqueId,
@@ -126,12 +127,94 @@ test.describe('Group + Elimination Tournament', () => {
     // ===== Step 9: Verify standings within groups =====
     // Each player in a group plays 3 matches (against the other 3 players)
     // Verify match counts per player
-    const allMatches = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
-    verifyGroupMatchCounts(allMatches, users)
+    const allGroupMatches = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
+    verifyGroupMatchCounts(allGroupMatches, users)
 
     // ===== Step 10: Verify round-robin completeness =====
-    verifyRoundRobinComplete(allMatches, 'A')
-    verifyRoundRobinComplete(allMatches, 'B')
+    verifyRoundRobinComplete(allGroupMatches, 'A')
+    verifyRoundRobinComplete(allGroupMatches, 'B')
+
+    // ===== Step 11: Advance to elimination stage =====
+    const advanceResponse = await advanceRoundViaAPI(request, creator.token, tournamentId)
+    expect(advanceResponse.message).toBe('Advanced to elimination stage')
+    expect(advanceResponse.qualifiers).toBeDefined()
+    expect(advanceResponse.qualifiers.length).toBe(4) // Top 2 from each of 2 groups
+
+    // Verify qualifiers are the top 2 from each group based on wins
+    const qualifiers = advanceResponse.qualifiers as Array<{ playerId: string; groupName: string; seed: number }>
+    const groupAQualifiers = qualifiers.filter((q) => q.groupName === 'A')
+    const groupBQualifiers = qualifiers.filter((q) => q.groupName === 'B')
+    expect(groupAQualifiers.length).toBe(2)
+    expect(groupBQualifiers.length).toBe(2)
+
+    // Verify seeds are correct (1 for winner, 2 for runner-up)
+    expect(groupAQualifiers.some((q) => q.seed === 1)).toBe(true)
+    expect(groupAQualifiers.some((q) => q.seed === 2)).toBe(true)
+    expect(groupBQualifiers.some((q) => q.seed === 1)).toBe(true)
+    expect(groupBQualifiers.some((q) => q.seed === 2)).toBe(true)
+
+    // ===== Step 12: Verify semifinal matches created =====
+    let matchesAfterAdvance = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
+    const semifinalMatches = matchesAfterAdvance.filter((m) => m.tournamentStage === 'SEMIFINAL')
+    expect(semifinalMatches.length).toBe(2)
+
+    // Verify semifinal pairings: Group A winner vs Group B runner-up, and vice versa
+    const qualifierIds = new Set(qualifiers.map((q) => q.playerId))
+    for (const match of semifinalMatches) {
+      expect(qualifierIds.has(match.player1Id)).toBe(true)
+      expect(qualifierIds.has(match.player2Id)).toBe(true)
+    }
+
+    // ===== Step 13: Complete semifinal matches =====
+    for (const match of semifinalMatches) {
+      const player1 = users.find((u) => u.id === match.player1Id)
+      const player2 = users.find((u) => u.id === match.player2Id)
+      if (!player1 || !player2) throw new Error('Could not find semifinal players')
+
+      await submitScoreViaAPI(request, player1.token, match.id, 11, 9)
+      await confirmMatchViaAPI(request, player2.token, match.id)
+    }
+
+    // ===== Step 14: Advance to final =====
+    const finalAdvanceResponse = await advanceRoundViaAPI(request, creator.token, tournamentId)
+    expect(finalAdvanceResponse.message).toBe('Final match created')
+
+    // ===== Step 15: Verify final match created =====
+    matchesAfterAdvance = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
+    const finalMatches = matchesAfterAdvance.filter((m) => m.tournamentStage === 'FINAL')
+    expect(finalMatches.length).toBe(1)
+
+    // Verify final contestants are semifinal winners
+    const semifinalWinners = semifinalMatches.map((m) => {
+      // Player1 always won (11-9) in our test
+      return m.player1Id
+    })
+    expect(semifinalWinners).toContain(finalMatches[0].player1Id)
+    expect(semifinalWinners).toContain(finalMatches[0].player2Id)
+
+    // ===== Step 16: Complete final match =====
+    const finalMatch = finalMatches[0]
+    const finalist1 = users.find((u) => u.id === finalMatch.player1Id)
+    const finalist2 = users.find((u) => u.id === finalMatch.player2Id)
+    if (!finalist1 || !finalist2) throw new Error('Could not find finalists')
+
+    await submitScoreViaAPI(request, finalist1.token, finalMatch.id, 11, 7)
+    await confirmMatchViaAPI(request, finalist2.token, finalMatch.id)
+
+    // ===== Step 17: Advance to finish tournament =====
+    const finishResponse = await advanceRoundViaAPI(request, creator.token, tournamentId)
+    expect(finishResponse.message).toBe('Tournament finished')
+    expect(finishResponse.winner).toBe(finalist1.id) // finalist1 won 11-7
+
+    // ===== Step 18: Verify tournament status is FINISHED =====
+    const finalTournament = await getTournamentViaAPI(request, creator.token, tournamentId)
+    expect(finalTournament.status).toBe('FINISHED')
+
+    // ===== Step 19: Navigate to tournaments and verify it's in Finished tab =====
+    await page.goto('/tournaments')
+    await page.waitForSelector('h1:has-text("Tournaments")')
+    await page.click('button[role="tab"]:has-text("Finished")')
+    await expect(page.getByText(tournamentName)).toBeVisible()
   })
 
   test('groups are balanced by MMR (snake draft)', async ({ page, request }) => {
