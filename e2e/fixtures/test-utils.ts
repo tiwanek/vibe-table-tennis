@@ -7,6 +7,27 @@ export function uniqueId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
 }
 
+// Fake names for E2E test users
+const FIRST_NAMES = [
+  'James', 'Emma', 'Oliver', 'Sophia', 'William', 'Ava', 'Benjamin', 'Isabella',
+  'Lucas', 'Mia', 'Henry', 'Charlotte', 'Alexander', 'Amelia', 'Sebastian', 'Harper',
+  'Jack', 'Evelyn', 'Daniel', 'Abigail', 'Michael', 'Emily', 'Owen', 'Elizabeth',
+  'Ethan', 'Sofia', 'Jacob', 'Avery', 'Noah', 'Ella', 'Liam', 'Scarlett',
+]
+
+const LAST_NAMES = [
+  'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis',
+  'Rodriguez', 'Martinez', 'Wilson', 'Anderson', 'Taylor', 'Thomas', 'Moore', 'Jackson',
+  'Martin', 'Lee', 'Thompson', 'White', 'Harris', 'Clark', 'Lewis', 'Robinson',
+  'Walker', 'Hall', 'Young', 'King', 'Wright', 'Scott', 'Green', 'Baker',
+]
+
+function generateFakeName(): string {
+  const firstName = FIRST_NAMES[Math.floor(Math.random() * FIRST_NAMES.length)]
+  const lastName = LAST_NAMES[Math.floor(Math.random() * LAST_NAMES.length)]
+  return `${firstName} ${lastName} (e2e)`
+}
+
 // User types
 export interface TestUser {
   id: string
@@ -47,8 +68,8 @@ export async function createUser(
 ): Promise<TestUser> {
   const id = uniqueId()
   const userData = {
-    username: overrides.username || `user_${id}`,
-    email: overrides.email || `user_${id}@test.com`,
+    username: overrides.username || generateFakeName(),
+    email: overrides.email || `e2e_${id}@test.com`,
     password: overrides.password || 'password123',
   }
 
