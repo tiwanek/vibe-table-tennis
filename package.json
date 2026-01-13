@@ -22,6 +22,7 @@
     "docker:run": "docker-compose up"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.2.0",
     "@playwright/test": "^1.57.0",
     "concurrently": "^8.2.2",
     "prettier": "^3.2.5"
