@@ -6,6 +6,8 @@ import {
   createMatchViaUI,
   confirmMatchViaUI,
   getUserViaAPI,
+  createMatchViaAPI,
+  submitScoreViaAPI,
   TestUser,
 } from './fixtures/test-utils'
 
@@ -177,5 +179,31 @@ test.describe('Standalone Match', () => {
     await page.click('button[role="tab"]:has-text("Confirmed")')
     await expect(page.getByText(`${userC.username} vs ${userD.username}`)).toBeVisible()
     await expect(page.getByText('Score: 11 - 7')).toBeVisible()
+  })
+
+  test('second score submission is rejected after first submission', async ({ request }) => {
+    // Create fresh users for this test
+    const userE = await createUser(request)
+    const userF = await createUser(request)
+
+    // Create a match without scores (PENDING status)
+    const match = await createMatchViaAPI(request, userE.token, userF.id)
+    expect(match.status).toBe('PENDING')
+
+    // First player submits a score - should succeed
+    const updatedMatch = await submitScoreViaAPI(request, userE.token, match.id, 11, 5)
+    expect(updatedMatch.status).toBe('AWAITING_CONFIRM')
+    expect(updatedMatch.player1Score).toBe(11)
+    expect(updatedMatch.player2Score).toBe(5)
+
+    // Second player tries to submit a different score - should be rejected
+    const response = await request.patch(`http://localhost:3001/api/matches/${match.id}/score`, {
+      headers: { Authorization: `Bearer ${userF.token}` },
+      data: { player1Score: 5, player2Score: 11 },
+    })
+
+    expect(response.status()).toBe(400)
+    const error = await response.json()
+    expect(error.error).toContain('already been submitted')
   })
 })

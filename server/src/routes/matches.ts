@@ -104,6 +104,10 @@ router.patch('/:id/score', authenticate, async (req: AuthRequest, res: Response,
       throw new AppError('Match is already confirmed', 400)
     }
 
+    if (match.status === 'AWAITING_CONFIRM') {
+      throw new AppError('Score has already been submitted and is awaiting confirmation', 400)
+    }
+
     const updatedMatch = await prisma.match.update({
       where: { id },
       data: {

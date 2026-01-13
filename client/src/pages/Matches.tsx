@@ -65,6 +65,14 @@ export function Matches() {
       setEditPlayer1Score('')
       setEditPlayer2Score('')
     },
+    onError: () => {
+      // Refresh matches to get latest state
+      queryClient.invalidateQueries({ queryKey: ['matches'] })
+      setEditingMatchId(null)
+      setEditPlayer1Score('')
+      setEditPlayer2Score('')
+      alert('Score has already been submitted by another player. The page will refresh.')
+    },
   })
 
   const pendingMatches = matches.filter(
