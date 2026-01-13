@@ -35,7 +35,7 @@ vibe-table-tennis/
 │   ├── src/
 │   │   ├── components/         # Reusable UI components
 │   │   │   └── ui/             # shadcn/ui components
-│   │   ├── pages/              # Page components
+│   │   ├── pages/              # Page components (Home, Matches, Tournaments, Leaderboard)
 │   │   ├── hooks/              # Custom React hooks
 │   │   ├── services/           # API service layer
 │   │   ├── store/              # Zustand stores
@@ -58,7 +58,8 @@ vibe-table-tennis/
 │   │   └── test-utils.ts       # Test helper functions
 │   ├── standalone-match.spec.ts
 │   ├── swiss-tournament.spec.ts
-│   └── group-elimination.spec.ts
+│   ├── group-elimination.spec.ts
+│   └── leaderboard.spec.ts
 ├── playwright.config.ts        # Playwright configuration
 ├── docker-compose.yml
 ├── Dockerfile
@@ -157,7 +158,8 @@ npm run test:e2e -- --debug
 E2E tests automatically start both client and server before running. Test files are in `/e2e`:
 - `standalone-match.spec.ts` - Two users play a match with score confirmation and MMR changes
 - `swiss-tournament.spec.ts` - 8 players complete a Swiss tournament through all rounds
-- `group-elimination.spec.ts` - 8 players complete a group stage tournament
+- `group-elimination.spec.ts` - 8 players complete a group stage + elimination tournament
+- `leaderboard.spec.ts` - Leaderboard display, user ranking, and MMR updates
 
 ### Code Formatting
 
@@ -285,3 +287,23 @@ Uses Elo rating system:
 - Players divided into groups (snake draft by MMR)
 - Round-robin within groups
 - Top players advance to single elimination bracket
+
+## Leaderboard
+
+The leaderboard displays all players ranked by their MMR rating:
+- Shows player rank, username, MMR value, and tier badge
+- Highlights the current user's row with distinct styling
+- Displays current user's rank prominently in a summary card
+- Updates in real-time as matches are completed and MMR changes
+
+Rating tiers (based on MMR):
+| Tier | MMR Range |
+|------|-----------|
+| Iron | < 800 |
+| Bronze | 800-999 |
+| Silver | 1000-1199 |
+| Gold | 1200-1399 |
+| Platinum | 1400-1599 |
+| Diamond | 1600-1799 |
+| Master | 1800-1999 |
+| Grandmaster | 2000+ |

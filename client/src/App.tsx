@@ -10,6 +10,7 @@ import { Home } from '@/pages/Home'
 import { Matches } from '@/pages/Matches'
 import { Tournaments } from '@/pages/Tournaments'
 import { TournamentDetail } from '@/pages/TournamentDetail'
+import { Leaderboard } from '@/pages/Leaderboard'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +43,7 @@ function AppRoutes() {
         <Route path="/matches" element={<Matches />} />
         <Route path="/tournaments" element={<Tournaments />} />
         <Route path="/tournaments/:id" element={<TournamentDetail />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
       </Route>
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

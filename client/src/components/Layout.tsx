@@ -1,7 +1,7 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth'
 import { Button } from '@/components/ui/button'
-import { LogOut, Trophy, Swords, User } from 'lucide-react'
+import { LogOut, Trophy, Swords, User, Medal } from 'lucide-react'
 
 export function Layout() {
   const { user, logout, isAuthenticated } = useAuthStore()
@@ -39,6 +39,13 @@ export function Layout() {
             >
               <Trophy className="h-4 w-4" />
               Tournaments
+            </Link>
+            <Link
+              to="/leaderboard"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Medal className="h-4 w-4" />
+              Leaderboard
             </Link>
           </nav>
 
