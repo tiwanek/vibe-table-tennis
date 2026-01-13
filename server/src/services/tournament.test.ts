@@ -147,6 +147,91 @@ describe('Tournament Service', () => {
         expect(['A', 'B']).toContain(match.groupName)
       }
     })
+
+    it('should create 1 group for 2 players with 1 match', () => {
+      const players = [
+        { id: '1', mmr: 1200 },
+        { id: '2', mmr: 1100 },
+      ]
+
+      const { groups, groupMatches } = generateGroupStage(players)
+
+      // Should have 1 group with both players
+      expect(Object.keys(groups)).toHaveLength(1)
+      expect(groups['A']).toHaveLength(2)
+      expect(groups['A']).toContain('1')
+      expect(groups['A']).toContain('2')
+
+      // Should have 1 match (round-robin with 2 players)
+      expect(groupMatches).toHaveLength(1)
+      expect(groupMatches[0].groupName).toBe('A')
+    })
+
+    it('should create 1 group for 3 players with 3 matches', () => {
+      const players = [
+        { id: '1', mmr: 1200 },
+        { id: '2', mmr: 1100 },
+        { id: '3', mmr: 1000 },
+      ]
+
+      const { groups, groupMatches } = generateGroupStage(players)
+
+      // Should have 1 group with all 3 players
+      expect(Object.keys(groups)).toHaveLength(1)
+      expect(groups['A']).toHaveLength(3)
+
+      // Should have 3 matches (3 choose 2 = 3)
+      expect(groupMatches).toHaveLength(3)
+      groupMatches.forEach((match) => {
+        expect(match.groupName).toBe('A')
+      })
+    })
+
+    it('should create 2 groups for 5 players', () => {
+      const players = [
+        { id: '1', mmr: 1500 },
+        { id: '2', mmr: 1400 },
+        { id: '3', mmr: 1300 },
+        { id: '4', mmr: 1200 },
+        { id: '5', mmr: 1100 },
+      ]
+
+      const { groups, groupMatches } = generateGroupStage(players)
+
+      // Should have 2 groups
+      expect(Object.keys(groups)).toHaveLength(2)
+
+      // One group has 3 players, one has 2
+      const groupSizes = Object.values(groups).map((g) => g.length).sort()
+      expect(groupSizes).toEqual([2, 3])
+
+      // Group A (3 players): 3 matches, Group B (2 players): 1 match = 4 total
+      expect(groupMatches).toHaveLength(4)
+    })
+
+    it('should ensure each group has at least 2 players for any count >= 2', () => {
+      // Test various player counts
+      for (const count of [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16]) {
+        const players = Array.from({ length: count }, (_, i) => ({
+          id: String(i + 1),
+          mmr: 1000 + i * 100,
+        }))
+
+        const { groups, groupMatches } = generateGroupStage(players)
+
+        // Each group should have at least 2 players
+        for (const [groupName, playerIds] of Object.entries(groups)) {
+          expect(playerIds.length).toBeGreaterThanOrEqual(2)
+        }
+
+        // Should have at least 1 match per group
+        const groupNames = Object.keys(groups)
+        for (const groupName of groupNames) {
+          const groupMatchCount = groupMatches.filter((m) => m.groupName === groupName).length
+          expect(groupMatchCount).toBeGreaterThanOrEqual(1)
+        }
+      }
+    })
   })
 
   describe('calculateGroupStandings', () => {

@@ -77,8 +77,18 @@ export function generateGroupStage(players: Player[]): {
   groups: Record<string, string[]>
   groupMatches: MatchPairing[]
 } {
-  // Determine number of groups (aim for 3-4 players per group)
-  const numGroups = Math.max(2, Math.ceil(players.length / 4))
+  // Determine number of groups:
+  // - For 2-3 players: 1 group (can't split into 2 groups with 2+ each)
+  // - For 4+ players: at least 2 groups, aiming for 3-4 players per group
+  // - Ensure each group has at least 2 players
+  let numGroups: number
+  if (players.length < 4) {
+    numGroups = 1
+  } else {
+    const desiredGroups = Math.ceil(players.length / 4)
+    const maxGroupsWithMinTwo = Math.floor(players.length / 2)
+    numGroups = Math.max(2, Math.min(maxGroupsWithMinTwo, desiredGroups))
+  }
   const groupNames = 'ABCDEFGH'.slice(0, numGroups).split('')
 
   // Sort by MMR (descending) for seeding
