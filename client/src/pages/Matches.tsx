@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Check, Plus, Clock } from 'lucide-react'
+import { Check, Plus, Clock, Edit2 } from 'lucide-react'
 import type { Match } from '@/types'
 
 export function Matches() {
@@ -24,6 +24,9 @@ export function Matches() {
   const [selectedOpponent, setSelectedOpponent] = useState('')
   const [player1Score, setPlayer1Score] = useState('')
   const [player2Score, setPlayer2Score] = useState('')
+  const [editingMatchId, setEditingMatchId] = useState<string | null>(null)
+  const [editPlayer1Score, setEditPlayer1Score] = useState('')
+  const [editPlayer2Score, setEditPlayer2Score] = useState('')
 
   const { data: matches = [], isLoading: matchesLoading } = useQuery({
     queryKey: ['matches'],
@@ -53,6 +56,17 @@ export function Matches() {
     },
   })
 
+  const updateScore = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { player1Score: number; player2Score: number } }) =>
+      matchesApi.updateScore(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['matches'] })
+      setEditingMatchId(null)
+      setEditPlayer1Score('')
+      setEditPlayer2Score('')
+    },
+  })
+
   const pendingMatches = matches.filter(
     (m) => m.status === 'PENDING' || m.status === 'AWAITING_CONFIRM'
   )
@@ -64,6 +78,36 @@ export function Matches() {
       match.createdById !== user?.id &&
       (match.player1Id === user?.id || match.player2Id === user?.id)
     )
+  }
+
+  const canEnterScore = (match: Match) => {
+    return (
+      match.status === 'PENDING' &&
+      (match.player1Id === user?.id || match.player2Id === user?.id)
+    )
+  }
+
+  const handleStartEditScore = (match: Match) => {
+    setEditingMatchId(match.id)
+    setEditPlayer1Score('')
+    setEditPlayer2Score('')
+  }
+
+  const handleSubmitScore = (matchId: string) => {
+    if (!editPlayer1Score || !editPlayer2Score) return
+    updateScore.mutate({
+      id: matchId,
+      data: {
+        player1Score: parseInt(editPlayer1Score),
+        player2Score: parseInt(editPlayer2Score),
+      },
+    })
+  }
+
+  const handleCancelEdit = () => {
+    setEditingMatchId(null)
+    setEditPlayer1Score('')
+    setEditPlayer2Score('')
   }
 
   const handleCreateMatch = () => {
@@ -193,17 +237,71 @@ export function Matches() {
                         Status: {match.status.replace('_', ' ')}
                       </div>
                     </div>
-                    {canConfirm(match) && (
-                      <Button
-                        size="sm"
-                        onClick={() => confirmMatch.mutate(match.id)}
-                        disabled={confirmMatch.isPending}
-                      >
-                        <Check className="h-4 w-4 mr-2" />
-                        Confirm
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {canEnterScore(match) && editingMatchId !== match.id && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleStartEditScore(match)}
+                        >
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Enter Score
+                        </Button>
+                      )}
+                      {canConfirm(match) && (
+                        <Button
+                          size="sm"
+                          onClick={() => confirmMatch.mutate(match.id)}
+                          disabled={confirmMatch.isPending}
+                        >
+                          <Check className="h-4 w-4 mr-2" />
+                          Confirm
+                        </Button>
+                      )}
+                    </div>
                   </div>
+                  {editingMatchId === match.id && (
+                    <div className="mt-4 pt-4 border-t space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>{match.player1.username}'s Score</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={editPlayer1Score}
+                            onChange={(e) => setEditPlayer1Score(e.target.value)}
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>{match.player2.username}'s Score</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            value={editPlayer2Score}
+                            onChange={(e) => setEditPlayer2Score(e.target.value)}
+                            placeholder="0"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handleSubmitScore(match.id)}
+                          disabled={!editPlayer1Score || !editPlayer2Score || updateScore.isPending}
+                        >
+                          {updateScore.isPending ? 'Submitting...' : 'Submit Score'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleCancelEdit}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))

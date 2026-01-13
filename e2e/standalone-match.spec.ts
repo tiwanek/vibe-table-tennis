@@ -113,4 +113,69 @@ test.describe('Standalone Match', () => {
     const pendingTab = page.locator('[role="tabpanel"]').first()
     await expect(pendingTab.getByRole('button', { name: 'Confirm' })).not.toBeVisible()
   })
+
+  test('match without score can have score entered later', async ({ page }) => {
+    // Create fresh users for this test
+    const userC = await createUser(page.request)
+    const userD = await createUser(page.request)
+
+    // ===== Step 1: UserC creates a match WITHOUT scores =====
+    await loginAs(page, userC.email, userC.password)
+    await page.goto('/matches')
+
+    // Create match without scores
+    await page.click('button:has-text("New Match")')
+    await page.waitForSelector('text=Record New Match')
+    await page.click('[role="combobox"]')
+    await page.click(`[role="option"]:has-text("${userD.username}")`)
+    // Do NOT enter scores
+    await page.click('button:has-text("Create Match")')
+    await page.waitForTimeout(1000)
+
+    // Verify match appears with PENDING status and no score
+    await expect(page.getByText(`${userC.username} vs ${userD.username}`)).toBeVisible()
+    await expect(page.getByText('Score not entered yet')).toBeVisible()
+    await expect(page.getByText('Status: PENDING')).toBeVisible()
+
+    // UserC should see "Enter Score" button
+    await expect(page.getByRole('button', { name: 'Enter Score' })).toBeVisible()
+
+    // ===== Step 2: UserC enters the score =====
+    await page.click('button:has-text("Enter Score")')
+
+    // Fill in the scores
+    await page.waitForSelector('button:has-text("Submit Score")')
+    await page.locator('input[placeholder="0"]').first().fill('11')
+    await page.locator('input[placeholder="0"]').last().fill('7')
+    await page.click('button:has-text("Submit Score")')
+    await page.waitForTimeout(1000)
+
+    // Verify match now shows score and AWAITING_CONFIRM status
+    await expect(page.getByText('Score: 11 - 7')).toBeVisible()
+    await expect(page.getByText('AWAITING CONFIRM')).toBeVisible()
+
+    // UserC should NOT see Confirm button (they submitted the score)
+    const pendingTab = page.locator('[role="tabpanel"]').first()
+    await expect(pendingTab.getByRole('button', { name: 'Confirm' })).not.toBeVisible()
+
+    // Logout UserC
+    await logout(page)
+
+    // ===== Step 3: UserD logs in and confirms the match =====
+    await loginAs(page, userD.email, userD.password)
+    await page.goto('/matches')
+
+    // UserD should see the match and Confirm button
+    await expect(page.getByText(`${userC.username} vs ${userD.username}`)).toBeVisible()
+    await expect(page.getByText('Score: 11 - 7')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Confirm' })).toBeVisible()
+
+    // Confirm the match
+    await confirmMatchViaUI(page)
+
+    // Verify match moved to Confirmed tab
+    await page.click('button[role="tab"]:has-text("Confirmed")')
+    await expect(page.getByText(`${userC.username} vs ${userD.username}`)).toBeVisible()
+    await expect(page.getByText('Score: 11 - 7')).toBeVisible()
+  })
 })
