@@ -62,6 +62,18 @@ export function TournamentDetail() {
       ?.filter((m) => m.tournamentStage === `SWISS_ROUND_${tournament.currentRound}`)
       .every((m) => m.status === 'CONFIRMED')
 
+  // For GROUP_ELIMINATION: check if all group matches are confirmed and no elimination matches exist yet
+  const groupMatches = tournament.matches?.filter((m) => m.tournamentStage === 'GROUP') || []
+  const eliminationMatches = tournament.matches?.filter((m) =>
+    m.tournamentStage === 'SEMIFINAL' || m.tournamentStage === 'FINAL' || m.tournamentStage === 'QUARTERFINAL'
+  ) || []
+  const allGroupMatchesConfirmed = groupMatches.length > 0 && groupMatches.every((m) => m.status === 'CONFIRMED')
+  const canAdvanceToElimination =
+    tournament.type === 'GROUP_ELIMINATION' &&
+    tournament.status === 'LIVE' &&
+    allGroupMatchesConfirmed &&
+    eliminationMatches.length === 0
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -76,6 +88,12 @@ export function TournamentDetail() {
           <Button onClick={() => advanceTournament.mutate()} disabled={advanceTournament.isPending}>
             <ArrowRight className="h-4 w-4 mr-2" />
             Advance Round
+          </Button>
+        )}
+        {isCreator && canAdvanceToElimination && (
+          <Button onClick={() => advanceTournament.mutate()} disabled={advanceTournament.isPending}>
+            <ArrowRight className="h-4 w-4 mr-2" />
+            Advance to Elimination
           </Button>
         )}
       </div>
