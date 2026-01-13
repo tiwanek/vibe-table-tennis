@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { matchesApi, usersApi } from '@/services/api'
 import { useAuthStore } from '@/store/auth'
+import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,6 +21,7 @@ import type { Match } from '@/types'
 export function Matches() {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [showNewMatch, setShowNewMatch] = useState(false)
   const [selectedOpponent, setSelectedOpponent] = useState('')
   const [player1Score, setPlayer1Score] = useState('')
@@ -71,7 +73,11 @@ export function Matches() {
       setEditingMatchId(null)
       setEditPlayer1Score('')
       setEditPlayer2Score('')
-      alert('Score has already been submitted by another player. The page will refresh.')
+      toast({
+        variant: 'destructive',
+        title: 'Score submission failed',
+        description: 'Score has already been submitted by another player. The page has been refreshed.',
+      })
     },
   })
 

@@ -11,6 +11,7 @@ import { Matches } from '@/pages/Matches'
 import { Tournaments } from '@/pages/Tournaments'
 import { TournamentDetail } from '@/pages/TournamentDetail'
 import { Leaderboard } from '@/pages/Leaderboard'
+import { Toaster } from '@/components/ui/toaster'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +57,7 @@ function App() {
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
+      <Toaster />
     </QueryClientProvider>
   )
 }

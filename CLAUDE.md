@@ -307,3 +307,55 @@ Rating tiers (based on MMR):
 | Diamond | 1600-1799 |
 | Master | 1800-1999 |
 | Grandmaster | 2000+ |
+
+## Error Handling
+
+### Backend Errors
+
+The backend uses a centralized error handling approach with the `AppError` class:
+
+```typescript
+// Throw operational errors with status code
+throw new AppError('Error message', 400)
+
+// Error response format
+{ "error": "Error message" }
+```
+
+Location: `server/src/middleware/errorHandler.ts`
+
+### Frontend Error Handling
+
+Use the toast notification system for user-facing errors:
+
+```typescript
+import { useToast } from '@/hooks/use-toast'
+
+function MyComponent() {
+  const { toast } = useToast()
+
+  const mutation = useMutation({
+    mutationFn: api.someAction,
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: 'Action failed',
+        description: 'A user-friendly error message.',
+      })
+    },
+  })
+}
+```
+
+Toast variants:
+- `default` - Neutral notifications
+- `destructive` - Error messages (red styling)
+- `success` - Success confirmations (green styling)
+
+Guidelines:
+- Always use toast notifications instead of browser `alert()`
+- Provide clear, actionable error messages
+- Refresh relevant data after errors to ensure UI consistency
+- Use `destructive` variant for errors, `success` for confirmations
+
+Location: `client/src/hooks/use-toast.ts`, `client/src/components/ui/toast.tsx`
