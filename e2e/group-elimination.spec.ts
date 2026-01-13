@@ -127,17 +127,31 @@ test.describe('Group + Elimination Tournament', () => {
       expect(groupBPlayers.length).toBe(4)
     }
 
-    // ===== Step 9: Verify standings within groups =====
+    // ===== Step 9: Verify Results tab shows group standings =====
+    await page.click('button[role="tab"]:has-text("Results")')
+
+    // Verify group tables are visible
+    await expect(page.getByText('Group A')).toBeVisible()
+    await expect(page.getByText('Group B')).toBeVisible()
+
+    // Verify table headers
+    await expect(page.getByText('MP').first()).toBeVisible()
+
+    // Verify standings rows exist (4 players per group)
+    const standingsRows = page.locator('[data-testid="standings-row"]')
+    await expect(standingsRows).toHaveCount(8) // 4 in each group
+
+    // ===== Step 10: Verify standings within groups =====
     // Each player in a group plays 3 matches (against the other 3 players)
     // Verify match counts per player
     const allGroupMatches = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
     verifyGroupMatchCounts(allGroupMatches, users)
 
-    // ===== Step 10: Verify round-robin completeness =====
+    // ===== Step 11: Verify round-robin completeness =====
     verifyRoundRobinComplete(allGroupMatches, 'A')
     verifyRoundRobinComplete(allGroupMatches, 'B')
 
-    // ===== Step 11: Advance to elimination stage via UI =====
+    // ===== Step 12: Advance to elimination stage via UI =====
     // Creator clicks "Advance to Elimination" button on tournament detail page
     await page.reload()
     await expect(page.getByRole('button', { name: 'Advance to Elimination' })).toBeVisible()
@@ -146,7 +160,7 @@ test.describe('Group + Elimination Tournament', () => {
     // Verify advancement by checking that semifinal matches were created
     await page.waitForTimeout(500)
 
-    // ===== Step 12: Verify semifinal matches created =====
+    // ===== Step 13: Verify semifinal matches created =====
     let matchesAfterAdvance = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
     const semifinalMatches = matchesAfterAdvance.filter((m) => m.tournamentStage === 'SEMIFINAL')
     expect(semifinalMatches.length).toBe(2)
@@ -159,7 +173,7 @@ test.describe('Group + Elimination Tournament', () => {
     }
     expect(semifinalPlayerIds.size).toBe(4) // 4 qualifiers from 2 groups
 
-    // ===== Step 13: Complete semifinal matches =====
+    // ===== Step 14: Complete semifinal matches =====
     for (const match of semifinalMatches) {
       const player1 = users.find((u) => u.id === match.player1Id)
       const player2 = users.find((u) => u.id === match.player2Id)
@@ -169,13 +183,13 @@ test.describe('Group + Elimination Tournament', () => {
       await confirmMatchViaAPI(request, player2.token, match.id)
     }
 
-    // ===== Step 14: Advance to final via UI =====
+    // ===== Step 15: Advance to final via UI =====
     // Creator clicks "Create Final" button to create final match
     await page.reload()
     await expect(page.getByRole('button', { name: 'Create Final' })).toBeVisible()
     await advanceTournamentViaUI(page, 'Create Final')
 
-    // ===== Step 15: Verify final match created =====
+    // ===== Step 16: Verify final match created =====
     matchesAfterAdvance = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
     const finalMatches = matchesAfterAdvance.filter((m) => m.tournamentStage === 'FINAL')
     expect(finalMatches.length).toBe(1)
@@ -188,7 +202,7 @@ test.describe('Group + Elimination Tournament', () => {
     expect(semifinalWinners).toContain(finalMatches[0].player1Id)
     expect(semifinalWinners).toContain(finalMatches[0].player2Id)
 
-    // ===== Step 16: Complete final match =====
+    // ===== Step 17: Complete final match =====
     const finalMatch = finalMatches[0]
     const finalist1 = users.find((u) => u.id === finalMatch.player1Id)
     const finalist2 = users.find((u) => u.id === finalMatch.player2Id)
@@ -197,17 +211,28 @@ test.describe('Group + Elimination Tournament', () => {
     await submitScoreViaAPI(request, finalist1.token, finalMatch.id, 11, 7)
     await confirmMatchViaAPI(request, finalist2.token, finalMatch.id)
 
-    // ===== Step 17: Finish tournament via UI =====
+    // ===== Step 18: Finish tournament via UI =====
     // Creator clicks "Finish Tournament" button to complete the tournament
     await page.reload()
     await expect(page.getByRole('button', { name: 'Finish Tournament' })).toBeVisible()
     await advanceTournamentViaUI(page, 'Finish Tournament')
 
-    // ===== Step 18: Verify tournament status is FINISHED =====
+    // ===== Step 19: Verify tournament status is FINISHED =====
     const finalTournament = await getTournamentViaAPI(request, creator.token, tournamentId)
     expect(finalTournament.status).toBe('FINISHED')
 
-    // ===== Step 19: Navigate to tournaments and verify it's in Finished tab =====
+    // ===== Step 20: Verify Results tab shows elimination bracket =====
+    await page.click('button[role="tab"]:has-text("Results")')
+    await expect(page.getByText('Elimination Bracket')).toBeVisible()
+    await expect(page.getByText('Semifinals')).toBeVisible()
+    await expect(page.getByText('Final', { exact: true })).toBeVisible()
+    await expect(page.getByText('Winner')).toBeVisible()
+
+    // Verify bracket matches are displayed
+    const bracketMatches = page.locator('[data-testid="bracket-match"]')
+    await expect(bracketMatches).toHaveCount(3) // 2 semifinals + 1 final
+
+    // ===== Step 21: Navigate to tournaments and verify it's in Finished tab =====
     await page.goto('/tournaments')
     await page.waitForSelector('h1:has-text("Tournaments")')
     await page.click('button[role="tab"]:has-text("Finished")')

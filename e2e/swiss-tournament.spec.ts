@@ -133,12 +133,27 @@ test.describe('Swiss Tournament', () => {
     const finalTournament = await getTournamentViaAPI(request, creator.token, tournamentId)
     expect(finalTournament.status).toBe('FINISHED')
 
+    // ===== Step 10: Verify Results tab =====
+    // Click on Results tab
+    await page.click('button[role="tab"]:has-text("Results")')
+
+    // Verify standings table is visible
+    await expect(page.getByText('Current Standings')).toBeVisible()
+
+    // Verify table headers
+    await expect(page.getByText('MP')).toBeVisible() // Matches Played
+    await expect(page.locator('[data-testid="standings-row"]').first()).toBeVisible()
+
+    // Verify all 8 players appear in standings
+    const standingsRows = page.locator('[data-testid="standings-row"]')
+    await expect(standingsRows).toHaveCount(8)
+
     // Navigate back to tournaments list
     await page.goto('/tournaments')
     await page.click('button[role="tab"]:has-text("Finished")')
     await expect(page.getByText(tournamentName)).toBeVisible()
 
-    // ===== Step 10: Verify no rematches occurred =====
+    // ===== Step 11: Verify no rematches occurred =====
     const allMatches = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
     verifyNoRematches(allMatches)
   })
