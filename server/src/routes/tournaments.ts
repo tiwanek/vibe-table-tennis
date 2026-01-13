@@ -459,7 +459,7 @@ router.post('/:id/advance', authenticate, async (req: AuthRequest, res: Response
           })),
         })
 
-        const updatedTournament = await prisma.tournament.update({
+        const updatedTournament = await prisma.tournament.findUnique({
           where: { id: tournament.id },
           include: {
             matches: {
@@ -512,7 +512,7 @@ router.post('/:id/advance', authenticate, async (req: AuthRequest, res: Response
               },
             })
 
-            const updatedTournament = await prisma.tournament.update({
+            const updatedTournament = await prisma.tournament.findUnique({
               where: { id: tournament.id },
               include: {
                 matches: {

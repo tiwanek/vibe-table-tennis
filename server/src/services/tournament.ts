@@ -194,9 +194,21 @@ export function generateEliminationBracket(
     return a.groupName.localeCompare(b.groupName)
   })
 
-  // Pair 1st from group A vs 2nd from group B, etc.
+  // Determine tournament stage based on number of qualifiers
+  // 2 qualifiers -> FINAL, 4 qualifiers -> SEMIFINAL, 8 -> QUARTERFINAL
+  const numQualifiers = sorted.length
+  let tournamentStage: string
+  if (numQualifiers <= 2) {
+    tournamentStage = 'FINAL'
+  } else if (numQualifiers <= 4) {
+    tournamentStage = 'SEMIFINAL'
+  } else {
+    tournamentStage = 'QUARTERFINAL'
+  }
+
+  // Pair 1st seed vs last seed, 2nd vs second-to-last, etc.
+  // This creates proper cross-group matchups (Group A winner vs Group B runner-up)
   const numMatches = Math.floor(sorted.length / 2)
-  const bracketSize = Math.pow(2, Math.ceil(Math.log2(numMatches)))
 
   for (let i = 0; i < numMatches; i++) {
     const topSeed = sorted[i]
@@ -206,7 +218,7 @@ export function generateEliminationBracket(
       matches.push({
         player1Id: topSeed.playerId,
         player2Id: bottomSeed.playerId,
-        tournamentStage: bracketSize <= 2 ? 'FINAL' : bracketSize <= 4 ? 'SEMIFINAL' : 'QUARTERFINAL',
+        tournamentStage,
       })
     }
   }
