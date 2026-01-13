@@ -250,6 +250,21 @@ export function Matches() {
                       <div className="text-sm text-muted-foreground">
                         Status: {match.status.replace('_', ' ')}
                       </div>
+                      <div className="text-sm text-muted-foreground">
+                        {match.tournament ? (
+                          <>
+                            Tournament: {match.tournament.name}
+                            {match.tournamentStage && (
+                              <span className="ml-1">
+                                ({match.tournamentStage.replace('_', ' ')}
+                                {match.groupName && ` - Group ${match.groupName}`})
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          'Standalone Match'
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       {canEnterScore(match) && editingMatchId !== match.id && (
@@ -343,11 +358,21 @@ export function Matches() {
                         <div className="text-sm">
                           Score: {match.player1Score} - {match.player2Score}
                         </div>
-                        {match.tournament && (
-                          <div className="text-sm text-muted-foreground">
-                            Tournament: {match.tournament.name}
-                          </div>
-                        )}
+                        <div className="text-sm text-muted-foreground">
+                          {match.tournament ? (
+                            <>
+                              Tournament: {match.tournament.name}
+                              {match.tournamentStage && (
+                                <span className="ml-1">
+                                  ({match.tournamentStage.replace('_', ' ')}
+                                  {match.groupName && ` - Group ${match.groupName}`})
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            'Standalone Match'
+                          )}
+                        </div>
                       </div>
                       <div
                         className={`text-sm font-medium ${
