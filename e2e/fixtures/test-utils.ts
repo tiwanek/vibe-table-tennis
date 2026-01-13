@@ -11,7 +11,13 @@ export function uniqueId(): string {
 function generateFakeName(): string {
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
-  return `${firstName} ${lastName} (e2e)`
+  const fullName = `${firstName} ${lastName} (e2e)`
+  // Username must be at most 30 characters
+  if (fullName.length > 30) {
+    // Truncate to fit within limit
+    return `${firstName.slice(0, 10)} ${lastName.slice(0, 10)} (e2e)`
+  }
+  return fullName
 }
 
 // User types

@@ -138,12 +138,16 @@ export function TournamentDetail() {
         )}
       </div>
 
-      <Tabs defaultValue="matches">
+      <Tabs defaultValue="results">
         <TabsList>
-          <TabsTrigger value="matches">Matches</TabsTrigger>
           <TabsTrigger value="results">Results</TabsTrigger>
+          <TabsTrigger value="matches">Matches</TabsTrigger>
           <TabsTrigger value="players">Players ({tournament.players.length})</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="results" className="space-y-6">
+          <ResultsTab tournament={tournament} />
+        </TabsContent>
 
         <TabsContent value="matches" className="space-y-6">
           {Object.entries(groupedMatches || {}).map(([stage, matches]) => (
@@ -208,10 +212,6 @@ export function TournamentDetail() {
               </CardContent>
             </Card>
           )}
-        </TabsContent>
-
-        <TabsContent value="results" className="space-y-6">
-          <ResultsTab tournament={tournament} />
         </TabsContent>
 
         <TabsContent value="players" className="space-y-4">

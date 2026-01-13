@@ -127,8 +127,8 @@ test.describe('Group + Elimination Tournament', () => {
       expect(groupBPlayers.length).toBe(4)
     }
 
-    // ===== Step 9: Verify Results tab shows group standings =====
-    await page.click('button[role="tab"]:has-text("Results")')
+    // ===== Step 9: Verify Results tab shows group standings (default tab) =====
+    // Results tab is now the default, so group standings should be visible immediately
 
     // Verify group tables are visible
     await expect(page.getByText('Group A')).toBeVisible()
@@ -221,8 +221,8 @@ test.describe('Group + Elimination Tournament', () => {
     const finalTournament = await getTournamentViaAPI(request, creator.token, tournamentId)
     expect(finalTournament.status).toBe('FINISHED')
 
-    // ===== Step 20: Verify Results tab shows elimination bracket =====
-    await page.click('button[role="tab"]:has-text("Results")')
+    // ===== Step 20: Verify Results tab shows elimination bracket (default tab) =====
+    // Results tab is now the default, so bracket should be visible after page reload
     await expect(page.getByText('Elimination Bracket')).toBeVisible()
     await expect(page.getByText('Semifinals')).toBeVisible()
     await expect(page.getByText('Final', { exact: true })).toBeVisible()

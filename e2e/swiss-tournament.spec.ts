@@ -133,9 +133,8 @@ test.describe('Swiss Tournament', () => {
     const finalTournament = await getTournamentViaAPI(request, creator.token, tournamentId)
     expect(finalTournament.status).toBe('FINISHED')
 
-    // ===== Step 10: Verify Results tab =====
-    // Click on Results tab
-    await page.click('button[role="tab"]:has-text("Results")')
+    // ===== Step 10: Verify Results tab (default tab) =====
+    // Results tab is now the default, so standings should be visible immediately
 
     // Verify standings table is visible
     await expect(page.getByText('Current Standings')).toBeVisible()
