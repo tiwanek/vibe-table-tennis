@@ -308,6 +308,30 @@ Rating tiers (based on MMR):
 | Master | 1800-1999 |
 | Grandmaster | 2000+ |
 
+## Tournament Results Tab
+
+The tournament detail page includes a "Results" tab with standings and bracket visualization.
+
+### Swiss Tournament
+- **Standings table** showing: Rank, Player, Matches Played (MP), Wins (W), Draws (D), Losses (L)
+- Sorted by wins descending, then by point differential
+- All 8 players displayed with their current standings
+
+### Group+Elimination Tournament
+- **Group standings tables** (one per group)
+  - Top 2 players highlighted as qualifiers (green background)
+  - Same columns as Swiss standings
+- **Elimination bracket visualization**
+  - Shows Quarterfinals, Semifinals, Final stages
+  - Displays player names and scores for completed matches
+  - Shows "TBD" for upcoming matches
+  - Winner displayed with trophy icon after tournament finishes
+
+### Implementation
+- Client-side standings calculation from confirmed matches (`client/src/lib/tournament.ts`)
+- Reusable components: `StandingsTable`, `EliminationBracket`
+- Unit tests: `client/src/lib/tournament.test.ts`
+
 ## Error Handling
 
 ### Backend Errors
