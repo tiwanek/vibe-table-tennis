@@ -16,13 +16,16 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Users, Trophy, Play } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 import type { Tournament } from '@/types'
 
 export function Tournaments() {
   const { user } = useAuthStore()
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [showNewTournament, setShowNewTournament] = useState(false)
   const [name, setName] = useState('')
+  const [nameError, setNameError] = useState('')
   const [type, setType] = useState<'SWISS' | 'GROUP_ELIMINATION'>('SWISS')
 
   const { data: tournaments = [], isLoading } = useQuery({
@@ -36,7 +39,15 @@ export function Tournaments() {
       queryClient.invalidateQueries({ queryKey: ['tournaments'] })
       setShowNewTournament(false)
       setName('')
+      setNameError('')
       setType('SWISS')
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to create tournament',
+        description: 'Please check the tournament name and try again.',
+      })
     },
   })
 
@@ -69,9 +80,27 @@ export function Tournaments() {
     return tournament.players.some((p) => p.userId === user?.id)
   }
 
+  const validateName = (value: string): string => {
+    const trimmed = value.trim()
+    if (trimmed.length === 0) return ''
+    if (trimmed.length < 3) return 'Tournament name must be at least 3 characters'
+    if (trimmed.length > 100) return 'Tournament name must be at most 100 characters'
+    return ''
+  }
+
+  const handleNameChange = (value: string) => {
+    setName(value)
+    setNameError(validateName(value))
+  }
+
   const handleCreateTournament = () => {
+    const error = validateName(name)
+    if (error) {
+      setNameError(error)
+      return
+    }
     if (!name.trim()) return
-    createTournament.mutate({ name, type })
+    createTournament.mutate({ name: name.trim(), type })
   }
 
   if (isLoading) {
@@ -99,9 +128,13 @@ export function Tournaments() {
               <Label>Tournament Name</Label>
               <Input
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => handleNameChange(e.target.value)}
                 placeholder="Friday Night Tournament"
+                className={nameError ? 'border-red-500' : ''}
               />
+              {nameError && (
+                <p className="text-sm text-red-500">{nameError}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Tournament Type</Label>
@@ -119,7 +152,7 @@ export function Tournaments() {
             </div>
             <Button
               onClick={handleCreateTournament}
-              disabled={!name.trim() || createTournament.isPending}
+              disabled={!name.trim() || !!nameError || createTournament.isPending}
             >
               {createTournament.isPending ? 'Creating...' : 'Create Tournament'}
             </Button>
