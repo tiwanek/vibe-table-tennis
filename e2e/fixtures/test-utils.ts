@@ -340,3 +340,63 @@ export async function confirmMatchViaUI(page: Page): Promise<void> {
   await page.reload()
   await page.waitForSelector('h1:has-text("Matches")')
 }
+
+// ============ Tournament Detail UI Helpers ============
+
+/**
+ * Navigate to tournament detail page and click advance button
+ */
+export async function advanceTournamentViaUI(page: Page, buttonText: string): Promise<void> {
+  // Click the advance button
+  await page.click(`button:has-text("${buttonText}")`)
+  // Wait for the mutation to complete
+  await page.waitForTimeout(1000)
+}
+
+/**
+ * Enter score for a match on the Matches page via UI
+ * Player must be logged in and the match must be in PENDING status
+ */
+export async function enterScoreViaUI(
+  page: Page,
+  player1Username: string,
+  player2Username: string,
+  player1Score: number,
+  player2Score: number
+): Promise<void> {
+  // Find the match card containing both player names
+  const matchCard = page.locator('.py-4').filter({
+    hasText: `${player1Username} vs ${player2Username}`,
+  })
+
+  // Click "Enter Score" button
+  await matchCard.getByRole('button', { name: 'Enter Score' }).click()
+
+  // Fill in scores
+  const scoreInputs = matchCard.locator('input[type="number"]')
+  await scoreInputs.first().fill(player1Score.toString())
+  await scoreInputs.last().fill(player2Score.toString())
+
+  // Submit score
+  await matchCard.getByRole('button', { name: 'Submit Score' }).click()
+  await page.waitForTimeout(500)
+}
+
+/**
+ * Confirm a match on the Matches page via UI
+ * Player must be logged in and the match must be in AWAITING_CONFIRM status
+ */
+export async function confirmMatchOnMatchesPageViaUI(
+  page: Page,
+  player1Username: string,
+  player2Username: string
+): Promise<void> {
+  // Find the match card containing both player names
+  const matchCard = page.locator('.py-4').filter({
+    hasText: `${player1Username} vs ${player2Username}`,
+  })
+
+  // Click "Confirm" button
+  await matchCard.getByRole('button', { name: 'Confirm' }).click()
+  await page.waitForTimeout(500)
+}

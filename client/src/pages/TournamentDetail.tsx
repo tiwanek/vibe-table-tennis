@@ -74,6 +74,36 @@ export function TournamentDetail() {
     allGroupMatchesConfirmed &&
     eliminationMatches.length === 0
 
+  // For GROUP_ELIMINATION elimination phase: check if current stage is complete
+  const semifinalMatches = tournament.matches?.filter((m) => m.tournamentStage === 'SEMIFINAL') || []
+  const finalMatches = tournament.matches?.filter((m) => m.tournamentStage === 'FINAL') || []
+  const quarterfinalMatches = tournament.matches?.filter((m) => m.tournamentStage === 'QUARTERFINAL') || []
+
+  const allSemifinalsConfirmed = semifinalMatches.length > 0 && semifinalMatches.every((m) => m.status === 'CONFIRMED')
+  const allFinalsConfirmed = finalMatches.length > 0 && finalMatches.every((m) => m.status === 'CONFIRMED')
+  const allQuarterfinalsConfirmed = quarterfinalMatches.length > 0 && quarterfinalMatches.every((m) => m.status === 'CONFIRMED')
+
+  // Determine if we can advance elimination stage
+  const canAdvanceEliminationStage =
+    tournament.type === 'GROUP_ELIMINATION' &&
+    tournament.status === 'LIVE' &&
+    (
+      // Can advance from quarterfinals to semifinals
+      (allQuarterfinalsConfirmed && semifinalMatches.length === 0) ||
+      // Can advance from semifinals to final
+      (allSemifinalsConfirmed && finalMatches.length === 0) ||
+      // Can finish tournament after final is confirmed
+      allFinalsConfirmed
+    )
+
+  // Determine button text for elimination advancement
+  const getEliminationAdvanceText = () => {
+    if (allFinalsConfirmed) return 'Finish Tournament'
+    if (allSemifinalsConfirmed && finalMatches.length === 0) return 'Create Final'
+    if (allQuarterfinalsConfirmed && semifinalMatches.length === 0) return 'Create Semifinals'
+    return 'Advance'
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -94,6 +124,12 @@ export function TournamentDetail() {
           <Button onClick={() => advanceTournament.mutate()} disabled={advanceTournament.isPending}>
             <ArrowRight className="h-4 w-4 mr-2" />
             Advance to Elimination
+          </Button>
+        )}
+        {isCreator && canAdvanceEliminationStage && (
+          <Button onClick={() => advanceTournament.mutate()} disabled={advanceTournament.isPending}>
+            <ArrowRight className="h-4 w-4 mr-2" />
+            {getEliminationAdvanceText()}
           </Button>
         )}
       </div>

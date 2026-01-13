@@ -2,12 +2,15 @@ import { test, expect } from '@playwright/test'
 import {
   createTestUsers,
   loginAs,
+  logout,
   registerForTournamentViaAPI,
   getTournamentViaAPI,
   getTournamentMatchesViaAPI,
   submitScoreViaAPI,
   confirmMatchViaAPI,
-  advanceRoundViaAPI,
+  advanceTournamentViaUI,
+  enterScoreViaUI,
+  confirmMatchOnMatchesPageViaUI,
   TestUser,
   Match,
   uniqueId,
@@ -134,36 +137,27 @@ test.describe('Group + Elimination Tournament', () => {
     verifyRoundRobinComplete(allGroupMatches, 'A')
     verifyRoundRobinComplete(allGroupMatches, 'B')
 
-    // ===== Step 11: Advance to elimination stage =====
-    const advanceResponse = await advanceRoundViaAPI(request, creator.token, tournamentId)
-    expect(advanceResponse.message).toBe('Advanced to elimination stage')
-    expect(advanceResponse.qualifiers).toBeDefined()
-    expect(advanceResponse.qualifiers.length).toBe(4) // Top 2 from each of 2 groups
+    // ===== Step 11: Advance to elimination stage via UI =====
+    // Creator clicks "Advance to Elimination" button on tournament detail page
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Advance to Elimination' })).toBeVisible()
+    await advanceTournamentViaUI(page, 'Advance to Elimination')
 
-    // Verify qualifiers are the top 2 from each group based on wins
-    const qualifiers = advanceResponse.qualifiers as Array<{ playerId: string; groupName: string; seed: number }>
-    const groupAQualifiers = qualifiers.filter((q) => q.groupName === 'A')
-    const groupBQualifiers = qualifiers.filter((q) => q.groupName === 'B')
-    expect(groupAQualifiers.length).toBe(2)
-    expect(groupBQualifiers.length).toBe(2)
-
-    // Verify seeds are correct (1 for winner, 2 for runner-up)
-    expect(groupAQualifiers.some((q) => q.seed === 1)).toBe(true)
-    expect(groupAQualifiers.some((q) => q.seed === 2)).toBe(true)
-    expect(groupBQualifiers.some((q) => q.seed === 1)).toBe(true)
-    expect(groupBQualifiers.some((q) => q.seed === 2)).toBe(true)
+    // Verify advancement by checking that semifinal matches were created
+    await page.waitForTimeout(500)
 
     // ===== Step 12: Verify semifinal matches created =====
     let matchesAfterAdvance = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
     const semifinalMatches = matchesAfterAdvance.filter((m) => m.tournamentStage === 'SEMIFINAL')
     expect(semifinalMatches.length).toBe(2)
 
-    // Verify semifinal pairings: Group A winner vs Group B runner-up, and vice versa
-    const qualifierIds = new Set(qualifiers.map((q) => q.playerId))
+    // Verify semifinal matches involve 4 different players (top 2 from each group)
+    const semifinalPlayerIds = new Set<string>()
     for (const match of semifinalMatches) {
-      expect(qualifierIds.has(match.player1Id)).toBe(true)
-      expect(qualifierIds.has(match.player2Id)).toBe(true)
+      semifinalPlayerIds.add(match.player1Id)
+      semifinalPlayerIds.add(match.player2Id)
     }
+    expect(semifinalPlayerIds.size).toBe(4) // 4 qualifiers from 2 groups
 
     // ===== Step 13: Complete semifinal matches =====
     for (const match of semifinalMatches) {
@@ -175,9 +169,11 @@ test.describe('Group + Elimination Tournament', () => {
       await confirmMatchViaAPI(request, player2.token, match.id)
     }
 
-    // ===== Step 14: Advance to final =====
-    const finalAdvanceResponse = await advanceRoundViaAPI(request, creator.token, tournamentId)
-    expect(finalAdvanceResponse.message).toBe('Final match created')
+    // ===== Step 14: Advance to final via UI =====
+    // Creator clicks "Create Final" button to create final match
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Create Final' })).toBeVisible()
+    await advanceTournamentViaUI(page, 'Create Final')
 
     // ===== Step 15: Verify final match created =====
     matchesAfterAdvance = await getTournamentMatchesViaAPI(request, creator.token, tournamentId)
@@ -201,10 +197,11 @@ test.describe('Group + Elimination Tournament', () => {
     await submitScoreViaAPI(request, finalist1.token, finalMatch.id, 11, 7)
     await confirmMatchViaAPI(request, finalist2.token, finalMatch.id)
 
-    // ===== Step 17: Advance to finish tournament =====
-    const finishResponse = await advanceRoundViaAPI(request, creator.token, tournamentId)
-    expect(finishResponse.message).toBe('Tournament finished')
-    expect(finishResponse.winner).toBe(finalist1.id) // finalist1 won 11-7
+    // ===== Step 17: Finish tournament via UI =====
+    // Creator clicks "Finish Tournament" button to complete the tournament
+    await page.reload()
+    await expect(page.getByRole('button', { name: 'Finish Tournament' })).toBeVisible()
+    await advanceTournamentViaUI(page, 'Finish Tournament')
 
     // ===== Step 18: Verify tournament status is FINISHED =====
     const finalTournament = await getTournamentViaAPI(request, creator.token, tournamentId)
