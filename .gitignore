@@ -37,3 +37,6 @@ prisma/migrations/
 # Misc
 .cache/
 .tmp/
+
+# Screenshots from application
+screenshots/
