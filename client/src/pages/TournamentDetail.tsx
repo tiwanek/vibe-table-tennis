@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tournamentsApi, matchesApi } from '@/services/api'
@@ -5,6 +6,9 @@ import { useAuthStore } from '@/store/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { StandingsTable } from '@/components/StandingsTable'
+import { EliminationBracket } from '@/components/EliminationBracket'
+import { calculateStandings, buildEliminationBracket } from '@/lib/tournament'
 import { Check, ArrowRight } from 'lucide-react'
 import type { Match } from '@/types'
 
@@ -137,6 +141,7 @@ export function TournamentDetail() {
       <Tabs defaultValue="matches">
         <TabsList>
           <TabsTrigger value="matches">Matches</TabsTrigger>
+          <TabsTrigger value="results">Results</TabsTrigger>
           <TabsTrigger value="players">Players ({tournament.players.length})</TabsTrigger>
         </TabsList>
 
@@ -205,6 +210,10 @@ export function TournamentDetail() {
           )}
         </TabsContent>
 
+        <TabsContent value="results" className="space-y-6">
+          <ResultsTab tournament={tournament} />
+        </TabsContent>
+
         <TabsContent value="players" className="space-y-4">
           <Card>
             <CardHeader>
@@ -238,5 +247,79 @@ export function TournamentDetail() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+// Results tab component
+function ResultsTab({ tournament }: { tournament: import('@/types').Tournament }) {
+  // Get unique group names for GROUP_ELIMINATION
+  const groupNames = useMemo(() => {
+    if (tournament.type !== 'GROUP_ELIMINATION') return []
+    const names = new Set(tournament.players.map((p) => p.groupName).filter(Boolean))
+    return Array.from(names).sort() as string[]
+  }, [tournament.players, tournament.type])
+
+  // Calculate standings for Swiss tournament
+  const swissStandings = useMemo(() => {
+    if (tournament.type !== 'SWISS') return []
+    return calculateStandings(tournament.players, tournament.matches || [])
+  }, [tournament.players, tournament.matches, tournament.type])
+
+  // Calculate standings for each group in GROUP_ELIMINATION
+  const groupStandings = useMemo(() => {
+    if (tournament.type !== 'GROUP_ELIMINATION') return []
+    return groupNames.map((groupName) => ({
+      groupName,
+      standings: calculateStandings(tournament.players, tournament.matches || [], groupName),
+    }))
+  }, [groupNames, tournament.players, tournament.matches, tournament.type])
+
+  // Build elimination bracket
+  const bracket = useMemo(() => {
+    if (tournament.type !== 'GROUP_ELIMINATION') return null
+    return buildEliminationBracket(tournament.matches || [])
+  }, [tournament.matches, tournament.type])
+
+  const hasEliminationMatches =
+    bracket && (bracket.quarterfinals.length > 0 || bracket.semifinals.length > 0 || bracket.final !== null)
+
+  // Show message if tournament hasn't started
+  if (tournament.status === 'OPEN') {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-muted-foreground">
+          Tournament hasn't started yet. Results will appear once matches begin.
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <>
+      {/* Swiss Tournament Standings */}
+      {tournament.type === 'SWISS' && (
+        <StandingsTable standings={swissStandings} title="Current Standings" />
+      )}
+
+      {/* GROUP_ELIMINATION Tournament */}
+      {tournament.type === 'GROUP_ELIMINATION' && (
+        <>
+          {/* Group Standings */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {groupStandings.map(({ groupName, standings }) => (
+              <StandingsTable
+                key={groupName}
+                standings={standings}
+                title={`Group ${groupName}`}
+                highlightTop={2}
+              />
+            ))}
+          </div>
+
+          {/* Elimination Bracket */}
+          {hasEliminationMatches && bracket && <EliminationBracket bracket={bracket} />}
+        </>
+      )}
+    </>
   )
 }
