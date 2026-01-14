@@ -350,11 +350,6 @@ The tournament detail page includes a "Results" tab with standings and bracket v
   - Shows "TBD" for upcoming matches
   - Winner displayed with trophy icon after tournament finishes
 
-### Implementation
-- Client-side standings calculation from confirmed matches (`client/src/lib/tournament.ts`)
-- Reusable components: `StandingsTable`, `EliminationBracket`
-- Unit tests: `client/src/lib/tournament.test.ts`
-
 ## Error Handling
 
 ### Backend Errors
