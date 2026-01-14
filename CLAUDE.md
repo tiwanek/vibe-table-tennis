@@ -81,8 +81,11 @@ npm install
 cd client && npm install
 cd ../server && npm install
 
-# Set up the database
+# Set up environment variables
 cd server
+cp .env.example .env
+
+# Set up the database
 npx prisma generate
 npx prisma db push
 ```
@@ -90,6 +93,11 @@ npx prisma db push
 ### Database Setup
 
 The application uses SQLite stored at `server/prisma/dev.db`. The database file is created automatically when you run `npx prisma db push`.
+
+**Environment variables** (in `server/.env`):
+- `DATABASE_URL` - SQLite database path (default: `file:./dev.db`)
+- `JWT_SECRET` - Secret key for JWT tokens (change in production)
+- `PORT` - Server port (default: 3001)
 
 ```bash
 # Create/update database schema (run from server directory)
@@ -134,6 +142,9 @@ npm run test:server
 End-to-end tests use Playwright and test complete user workflows.
 
 ```bash
+# Install Playwright browsers (required once)
+npx playwright install
+
 # Run all E2E tests
 npm run test:e2e
 
