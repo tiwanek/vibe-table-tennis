@@ -27,6 +27,18 @@ A web application for managing table tennis tournaments and tracking player MMR 
 - **ESLint** + **Prettier** - Code quality
 - **Docker** - Production deployment
 
+## Development Workflow
+
+For each work item (feature, bug fix, documentation), follow these steps:
+
+1. **Implement** - Write the functionality, fix the bug, or update documentation
+2. **Format** - Run code formatter: `npm run format`
+3. **Lint** - Run style checker: `cd client && npm run lint` and `cd server && npm run lint`
+4. **Unit tests** - Write unit tests if needed, run with: `npm test`
+5. **E2E tests** - Write E2E tests if needed, run with: `npm run test:e2e`
+6. **Iterate** - Fix any issues with implementation, tests, style, or formatting until all checks pass
+7. **Commit** - Commit your work to git with a descriptive message
+
 ## Project Structure
 
 ```
