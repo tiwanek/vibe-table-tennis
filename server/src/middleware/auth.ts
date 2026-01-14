@@ -11,11 +11,7 @@ export interface AuthRequest extends Request {
   }
 }
 
-export async function authenticate(
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) {
+export async function authenticate(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const authHeader = req.headers.authorization
 

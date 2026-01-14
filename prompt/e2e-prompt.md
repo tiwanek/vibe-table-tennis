@@ -30,5 +30,3 @@ Having 8 players simaulte whole tournament.
 from one user creating a group+elimination tournament, by entering results for
 each stages pu to the tournament end.
 Check expected tournamet results.
-
-

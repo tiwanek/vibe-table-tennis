@@ -59,8 +59,13 @@ export function Matches() {
   })
 
   const updateScore = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { player1Score: number; player2Score: number } }) =>
-      matchesApi.updateScore(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string
+      data: { player1Score: number; player2Score: number }
+    }) => matchesApi.updateScore(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['matches'] })
       setEditingMatchId(null)
@@ -76,7 +81,8 @@ export function Matches() {
       toast({
         variant: 'destructive',
         title: 'Score submission failed',
-        description: 'Score has already been submitted by another player. The page has been refreshed.',
+        description:
+          'Score has already been submitted by another player. The page has been refreshed.',
       })
     },
   })
@@ -96,8 +102,7 @@ export function Matches() {
 
   const canEnterScore = (match: Match) => {
     return (
-      match.status === 'PENDING' &&
-      (match.player1Id === user?.id || match.player2Id === user?.id)
+      match.status === 'PENDING' && (match.player1Id === user?.id || match.player2Id === user?.id)
     )
   }
 
@@ -207,7 +212,10 @@ export function Matches() {
                 />
               </div>
             </div>
-            <Button onClick={handleCreateMatch} disabled={!selectedOpponent || createMatch.isPending}>
+            <Button
+              onClick={handleCreateMatch}
+              disabled={!selectedOpponent || createMatch.isPending}
+            >
               {createMatch.isPending ? 'Creating...' : 'Create Match'}
             </Button>
           </CardContent>
@@ -321,11 +329,7 @@ export function Matches() {
                         >
                           {updateScore.isPending ? 'Submitting...' : 'Submit Score'}
                         </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleCancelEdit}
-                        >
+                        <Button size="sm" variant="outline" onClick={handleCancelEdit}>
                           Cancel
                         </Button>
                       </div>

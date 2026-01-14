@@ -5,6 +5,7 @@ A web application for managing table tennis tournaments and tracking player MMR 
 ## Technology Stack
 
 ### Frontend (`/client`)
+
 - **React 18** with TypeScript
 - **Vite** - Build tool and dev server
 - **Tailwind CSS** + **shadcn/ui** - Styling and UI components
@@ -15,6 +16,7 @@ A web application for managing table tennis tournaments and tracking player MMR 
 - **Axios** - HTTP client
 
 ### Backend (`/server`)
+
 - **Express.js** with TypeScript
 - **Prisma ORM** - Database access
 - **SQLite** - Database
@@ -22,6 +24,7 @@ A web application for managing table tennis tournaments and tracking player MMR 
 - **bcrypt** - Password hashing
 
 ### Development Tools
+
 - **Vitest** - Unit testing
 - **Playwright** - E2E testing
 - **ESLint** + **Prettier** - Code quality
@@ -82,6 +85,7 @@ vibe-table-tennis/
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm
 
@@ -107,6 +111,7 @@ npx prisma db push
 The application uses SQLite stored at `server/prisma/dev.db`. The database file is created automatically when you run `npx prisma db push`.
 
 **Environment variables** (in `server/.env`):
+
 - `DATABASE_URL` - SQLite database path (default: `file:./dev.db`)
 - `JWT_SECRET` - Secret key for JWT tokens (change in production)
 - `PORT` - Server port (default: 3001)
@@ -179,6 +184,7 @@ npm run test:e2e -- --debug
 ```
 
 E2E tests automatically start both client and server before running. Test files are in `/e2e`:
+
 - `standalone-match.spec.ts` - Two users play a match with score confirmation and MMR changes
 - `swiss-tournament.spec.ts` - 8 players complete a Swiss tournament through all rounds
 - `group-elimination.spec.ts` - 8 players complete a group stage + elimination tournament
@@ -246,24 +252,28 @@ docker-compose down -v
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/signup` - Register new user
 - `POST /api/auth/login` - Login, returns JWT
 - `POST /api/auth/reset-password` - Request password reset
 - `POST /api/auth/reset-password/:token` - Complete password reset
 
 ### Users
+
 - `GET /api/users/me` - Get current user profile
 - `GET /api/users` - List all users (for opponent selection)
 - `GET /api/users/:id` - Get user by ID
 - `GET /api/users/:id/matches` - Get user's match history
 
 ### Matches
+
 - `GET /api/matches` - List current user's matches
 - `POST /api/matches` - Create new standalone match
 - `PATCH /api/matches/:id/score` - Submit match score
 - `POST /api/matches/:id/confirm` - Confirm opponent's score
 
 ### Tournaments
+
 - `GET /api/tournaments` - List all tournaments
 - `POST /api/tournaments` - Create new tournament
 - `GET /api/tournaments/:id` - Get tournament details
@@ -276,25 +286,30 @@ docker-compose down -v
 ## Database Schema
 
 ### User
+
 - `id`, `username`, `email`, `password`, `mmr` (default: 1000)
 
 ### Match
+
 - `id`, `player1Id`, `player2Id`, `player1Score`, `player2Score`
 - `status`: PENDING | AWAITING_CONFIRM | CONFIRMED
 - `tournamentId` (optional), `tournamentStage`, `groupName`
 
 ### Tournament
+
 - `id`, `name`, `creatorId`
 - `type`: SWISS | GROUP_ELIMINATION
 - `status`: OPEN | LIVE | FINISHED
 - `currentRound` (for Swiss)
 
 ### TournamentPlayer
+
 - `id`, `tournamentId`, `userId`, `groupName`, `eliminated`, `seed`
 
 ## MMR System
 
 Uses Elo rating system:
+
 - Starting MMR: 1000
 - K-factor: 32
 - Rating tiers: Iron, Bronze, Silver, Gold, Platinum, Diamond, Master, Grandmaster
@@ -302,11 +317,13 @@ Uses Elo rating system:
 ## Tournament Types
 
 ### Swiss
+
 - Players paired by score and MMR each round
 - No elimination, all players play all rounds
 - Number of rounds = ceil(log2(players))
 
 ### Group + Elimination
+
 - Players divided into groups (snake draft by MMR)
 - Round-robin within groups
 - Top players advance to single elimination bracket
@@ -314,6 +331,7 @@ Uses Elo rating system:
 ## Leaderboard
 
 The leaderboard displays all players ranked by their MMR rating:
+
 - Shows player rank, username, MMR value, and tier badge
 - Highlights the current user's row with distinct styling
 - Displays current user's rank prominently in a summary card
@@ -336,11 +354,13 @@ Rating tiers (based on MMR):
 The tournament detail page includes a "Results" tab with standings and bracket visualization.
 
 ### Swiss Tournament
+
 - **Standings table** showing: Rank, Player, Matches Played (MP), Wins (W), Draws (D), Losses (L)
 - Sorted by wins descending, then by point differential
 - All 8 players displayed with their current standings
 
 ### Group+Elimination Tournament
+
 - **Group standings tables** (one per group)
   - Top 2 players highlighted as qualifiers (green background)
   - Same columns as Swiss standings
@@ -390,11 +410,13 @@ function MyComponent() {
 ```
 
 Toast variants:
+
 - `default` - Neutral notifications
 - `destructive` - Error messages (red styling)
 - `success` - Success confirmations (green styling)
 
 Guidelines:
+
 - Always use toast notifications instead of browser `alert()`
 - Provide clear, actionable error messages
 - Refresh relevant data after errors to ensure UI consistency

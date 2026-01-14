@@ -93,8 +93,8 @@ test.describe('Swiss Tournament', () => {
 
     // ===== Step 6: Advance to Round 2 =====
     // Navigate to tournament detail
-    await page.click(`a:has-text("View")`);
-    await page.waitForURL(/\/tournaments\//);
+    await page.click(`a:has-text("View")`)
+    await page.waitForURL(/\/tournaments\//)
 
     // Click Advance Round
     await page.click('button:has-text("Advance Round")')

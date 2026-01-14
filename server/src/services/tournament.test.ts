@@ -202,7 +202,9 @@ describe('Tournament Service', () => {
       expect(Object.keys(groups)).toHaveLength(2)
 
       // One group has 3 players, one has 2
-      const groupSizes = Object.values(groups).map((g) => g.length).sort()
+      const groupSizes = Object.values(groups)
+        .map((g) => g.length)
+        .sort()
       expect(groupSizes).toEqual([2, 3])
 
       // Group A (3 players): 3 matches, Group B (2 players): 1 match = 4 total

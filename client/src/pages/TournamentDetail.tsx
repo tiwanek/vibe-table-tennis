@@ -68,10 +68,15 @@ export function TournamentDetail() {
 
   // For GROUP_ELIMINATION: check if all group matches are confirmed and no elimination matches exist yet
   const groupMatches = tournament.matches?.filter((m) => m.tournamentStage === 'GROUP') || []
-  const eliminationMatches = tournament.matches?.filter((m) =>
-    m.tournamentStage === 'SEMIFINAL' || m.tournamentStage === 'FINAL' || m.tournamentStage === 'QUARTERFINAL'
-  ) || []
-  const allGroupMatchesConfirmed = groupMatches.length > 0 && groupMatches.every((m) => m.status === 'CONFIRMED')
+  const eliminationMatches =
+    tournament.matches?.filter(
+      (m) =>
+        m.tournamentStage === 'SEMIFINAL' ||
+        m.tournamentStage === 'FINAL' ||
+        m.tournamentStage === 'QUARTERFINAL'
+    ) || []
+  const allGroupMatchesConfirmed =
+    groupMatches.length > 0 && groupMatches.every((m) => m.status === 'CONFIRMED')
   const canAdvanceToElimination =
     tournament.type === 'GROUP_ELIMINATION' &&
     tournament.status === 'LIVE' &&
@@ -79,26 +84,29 @@ export function TournamentDetail() {
     eliminationMatches.length === 0
 
   // For GROUP_ELIMINATION elimination phase: check if current stage is complete
-  const semifinalMatches = tournament.matches?.filter((m) => m.tournamentStage === 'SEMIFINAL') || []
+  const semifinalMatches =
+    tournament.matches?.filter((m) => m.tournamentStage === 'SEMIFINAL') || []
   const finalMatches = tournament.matches?.filter((m) => m.tournamentStage === 'FINAL') || []
-  const quarterfinalMatches = tournament.matches?.filter((m) => m.tournamentStage === 'QUARTERFINAL') || []
+  const quarterfinalMatches =
+    tournament.matches?.filter((m) => m.tournamentStage === 'QUARTERFINAL') || []
 
-  const allSemifinalsConfirmed = semifinalMatches.length > 0 && semifinalMatches.every((m) => m.status === 'CONFIRMED')
-  const allFinalsConfirmed = finalMatches.length > 0 && finalMatches.every((m) => m.status === 'CONFIRMED')
-  const allQuarterfinalsConfirmed = quarterfinalMatches.length > 0 && quarterfinalMatches.every((m) => m.status === 'CONFIRMED')
+  const allSemifinalsConfirmed =
+    semifinalMatches.length > 0 && semifinalMatches.every((m) => m.status === 'CONFIRMED')
+  const allFinalsConfirmed =
+    finalMatches.length > 0 && finalMatches.every((m) => m.status === 'CONFIRMED')
+  const allQuarterfinalsConfirmed =
+    quarterfinalMatches.length > 0 && quarterfinalMatches.every((m) => m.status === 'CONFIRMED')
 
   // Determine if we can advance elimination stage
   const canAdvanceEliminationStage =
     tournament.type === 'GROUP_ELIMINATION' &&
     tournament.status === 'LIVE' &&
-    (
-      // Can advance from quarterfinals to semifinals
-      (allQuarterfinalsConfirmed && semifinalMatches.length === 0) ||
+    // Can advance from quarterfinals to semifinals
+    ((allQuarterfinalsConfirmed && semifinalMatches.length === 0) ||
       // Can advance from semifinals to final
       (allSemifinalsConfirmed && finalMatches.length === 0) ||
       // Can finish tournament after final is confirmed
-      allFinalsConfirmed
-    )
+      allFinalsConfirmed)
 
   // Determine button text for elimination advancement
   const getEliminationAdvanceText = () => {
@@ -118,12 +126,18 @@ export function TournamentDetail() {
             {tournament.currentRound && ` | Round ${tournament.currentRound}`}
           </p>
         </div>
-        {isCreator && tournament.status === 'LIVE' && tournament.type === 'SWISS' && allCurrentRoundConfirmed && (
-          <Button onClick={() => advanceTournament.mutate()} disabled={advanceTournament.isPending}>
-            <ArrowRight className="h-4 w-4 mr-2" />
-            Advance Round
-          </Button>
-        )}
+        {isCreator &&
+          tournament.status === 'LIVE' &&
+          tournament.type === 'SWISS' &&
+          allCurrentRoundConfirmed && (
+            <Button
+              onClick={() => advanceTournament.mutate()}
+              disabled={advanceTournament.isPending}
+            >
+              <ArrowRight className="h-4 w-4 mr-2" />
+              Advance Round
+            </Button>
+          )}
         {isCreator && canAdvanceToElimination && (
           <Button onClick={() => advanceTournament.mutate()} disabled={advanceTournament.isPending}>
             <ArrowRight className="h-4 w-4 mr-2" />
@@ -163,13 +177,27 @@ export function TournamentDetail() {
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-4">
-                        <span className={match.player1Score !== null && match.player1Score > (match.player2Score || 0) ? 'font-bold' : ''}>
+                        <span
+                          className={
+                            match.player1Score !== null &&
+                            match.player1Score > (match.player2Score || 0)
+                              ? 'font-bold'
+                              : ''
+                          }
+                        >
                           {match.player1.username}
                         </span>
                         <span className="text-muted-foreground">
                           {match.player1Score ?? '-'} : {match.player2Score ?? '-'}
                         </span>
-                        <span className={match.player2Score !== null && match.player2Score > (match.player1Score || 0) ? 'font-bold' : ''}>
+                        <span
+                          className={
+                            match.player2Score !== null &&
+                            match.player2Score > (match.player1Score || 0)
+                              ? 'font-bold'
+                              : ''
+                          }
+                        >
                           {match.player2.username}
                         </span>
                       </div>
@@ -281,7 +309,8 @@ function ResultsTab({ tournament }: { tournament: import('@/types').Tournament }
   }, [tournament.matches, tournament.type])
 
   const hasEliminationMatches =
-    bracket && (bracket.quarterfinals.length > 0 || bracket.semifinals.length > 0 || bracket.final !== null)
+    bracket &&
+    (bracket.quarterfinals.length > 0 || bracket.semifinals.length > 0 || bracket.final !== null)
 
   // Show message if tournament hasn't started
   if (tournament.status === 'OPEN') {

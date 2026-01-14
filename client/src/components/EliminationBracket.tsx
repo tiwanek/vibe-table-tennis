@@ -24,9 +24,7 @@ export function EliminationBracket({ bracket }: EliminationBracketProps) {
       <CardContent>
         <div className="flex gap-8 overflow-x-auto pb-4">
           {/* Quarterfinals column */}
-          {hasQuarterfinals && (
-            <BracketColumn title="Quarterfinals" matches={quarterfinals} />
-          )}
+          {hasQuarterfinals && <BracketColumn title="Quarterfinals" matches={quarterfinals} />}
 
           {/* Semifinals column */}
           {hasSemifinals && <BracketColumn title="Semifinals" matches={semifinals} />}

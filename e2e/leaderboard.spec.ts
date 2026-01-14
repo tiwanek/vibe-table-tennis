@@ -72,7 +72,9 @@ test.describe('Leaderboard', () => {
 
     // Verify user's name appears in the rank summary section
     // The username appears in the "Your Ranking" card area
-    await expect(page.locator('.font-medium').filter({ hasText: user.username }).first()).toBeVisible()
+    await expect(
+      page.locator('.font-medium').filter({ hasText: user.username }).first()
+    ).toBeVisible()
   })
 
   test('displays rating tiers for players', async ({ page }) => {

@@ -82,9 +82,7 @@ export function Leaderboard() {
                   <div
                     key={leaderboardUser.id}
                     className={`grid grid-cols-12 gap-2 px-3 py-3 rounded-md items-center ${
-                      isCurrentUser
-                        ? 'bg-primary/10 border border-primary/30'
-                        : 'hover:bg-muted/50'
+                      isCurrentUser ? 'bg-primary/10 border border-primary/30' : 'hover:bg-muted/50'
                     }`}
                     data-testid={isCurrentUser ? 'current-user-row' : undefined}
                   >
@@ -93,9 +91,7 @@ export function Leaderboard() {
                     </div>
                     <div className="col-span-5 font-medium">
                       {leaderboardUser.username}
-                      {isCurrentUser && (
-                        <span className="ml-2 text-xs text-primary">(You)</span>
-                      )}
+                      {isCurrentUser && <span className="ml-2 text-xs text-primary">(You)</span>}
                     </div>
                     <div className="col-span-3 text-right font-mono">{leaderboardUser.mmr}</div>
                     <div className="col-span-3 text-right">

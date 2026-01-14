@@ -31,9 +31,7 @@ export function calculateStandings(
   groupName?: string
 ): PlayerStanding[] {
   // Filter players by group if specified
-  const filteredPlayers = groupName
-    ? players.filter((p) => p.groupName === groupName)
-    : players
+  const filteredPlayers = groupName ? players.filter((p) => p.groupName === groupName) : players
 
   // Filter matches to only confirmed ones
   // For group standings, also filter by group stage

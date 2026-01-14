@@ -144,7 +144,13 @@ export function calculateGroupStandings(
     player2Score: number | null
     status: string
   }>
-): Array<{ playerId: string; wins: number; losses: number; pointsFor: number; pointsAgainst: number }> {
+): Array<{
+  playerId: string
+  wins: number
+  losses: number
+  pointsFor: number
+  pointsAgainst: number
+}> {
   const standings = new Map<
     string,
     { wins: number; losses: number; pointsFor: number; pointsAgainst: number }

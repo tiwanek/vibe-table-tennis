@@ -71,25 +71,29 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response, next: N
 })
 
 // Get user's match history
-router.get('/:id/matches', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const matches = await prisma.match.findMany({
-      where: {
-        OR: [{ player1Id: req.params.id }, { player2Id: req.params.id }],
-        status: 'CONFIRMED',
-      },
-      include: {
-        player1: { select: { id: true, username: true } },
-        player2: { select: { id: true, username: true } },
-        tournament: { select: { id: true, name: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+router.get(
+  '/:id/matches',
+  authenticate,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const matches = await prisma.match.findMany({
+        where: {
+          OR: [{ player1Id: req.params.id }, { player2Id: req.params.id }],
+          status: 'CONFIRMED',
+        },
+        include: {
+          player1: { select: { id: true, username: true } },
+          player2: { select: { id: true, username: true } },
+          tournament: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
 
-    res.json(matches)
-  } catch (error) {
-    next(error)
+      res.json(matches)
+    } catch (error) {
+      next(error)
+    }
   }
-})
+)
 
 export default router

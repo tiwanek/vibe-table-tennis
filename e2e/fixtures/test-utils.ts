@@ -345,7 +345,10 @@ export async function createMatchViaUI(
 
 export async function confirmMatchViaUI(page: Page): Promise<void> {
   // Click the Confirm button in the pending matches panel
-  const confirmButton = page.locator('[role="tabpanel"]').first().getByRole('button', { name: 'Confirm' })
+  const confirmButton = page
+    .locator('[role="tabpanel"]')
+    .first()
+    .getByRole('button', { name: 'Confirm' })
   await confirmButton.click()
   // Wait for the mutation to complete and UI to refresh
   await page.waitForTimeout(1500)

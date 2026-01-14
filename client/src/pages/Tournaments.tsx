@@ -132,9 +132,7 @@ export function Tournaments() {
                 placeholder="Friday Night Tournament"
                 className={nameError ? 'border-red-500' : ''}
               />
-              {nameError && (
-                <p className="text-sm text-red-500">{nameError}</p>
-              )}
+              {nameError && <p className="text-sm text-red-500">{nameError}</p>}
             </div>
             <div className="space-y-2">
               <Label>Tournament Type</Label>

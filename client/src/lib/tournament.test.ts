@@ -47,7 +47,11 @@ function createMatch(
 describe('Tournament Utilities', () => {
   describe('calculateStandings', () => {
     it('returns correct wins and losses for each player', () => {
-      const players = [createPlayer('1', 'Alice'), createPlayer('2', 'Bob'), createPlayer('3', 'Charlie')]
+      const players = [
+        createPlayer('1', 'Alice'),
+        createPlayer('2', 'Bob'),
+        createPlayer('3', 'Charlie'),
+      ]
 
       const matches = [
         createMatch('m1', '1', '2', 11, 5), // Alice beats Bob

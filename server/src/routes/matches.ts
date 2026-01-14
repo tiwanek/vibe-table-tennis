@@ -83,130 +83,138 @@ router.post('/', authenticate, async (req: AuthRequest, res: Response, next: Nex
 })
 
 // Submit score for a match
-router.patch('/:id/score', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params
-    const data = updateScoreSchema.parse(req.body)
+router.patch(
+  '/:id/score',
+  authenticate,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+      const data = updateScoreSchema.parse(req.body)
 
-    const match = await prisma.match.findUnique({
-      where: { id },
-    })
+      const match = await prisma.match.findUnique({
+        where: { id },
+      })
 
-    if (!match) {
-      throw new AppError('Match not found', 404)
-    }
+      if (!match) {
+        throw new AppError('Match not found', 404)
+      }
 
-    if (match.player1Id !== req.user!.id && match.player2Id !== req.user!.id) {
-      throw new AppError('You are not a participant in this match', 403)
-    }
+      if (match.player1Id !== req.user!.id && match.player2Id !== req.user!.id) {
+        throw new AppError('You are not a participant in this match', 403)
+      }
 
-    if (match.status === 'CONFIRMED') {
-      throw new AppError('Match is already confirmed', 400)
-    }
+      if (match.status === 'CONFIRMED') {
+        throw new AppError('Match is already confirmed', 400)
+      }
 
-    if (match.status === 'AWAITING_CONFIRM') {
-      throw new AppError('Score has already been submitted and is awaiting confirmation', 400)
-    }
+      if (match.status === 'AWAITING_CONFIRM') {
+        throw new AppError('Score has already been submitted and is awaiting confirmation', 400)
+      }
 
-    const updatedMatch = await prisma.match.update({
-      where: { id },
-      data: {
-        player1Score: data.player1Score,
-        player2Score: data.player2Score,
-        status: 'AWAITING_CONFIRM',
-        createdById: req.user!.id,
-      },
-      include: {
-        player1: { select: { id: true, username: true, mmr: true } },
-        player2: { select: { id: true, username: true, mmr: true } },
-      },
-    })
-
-    res.json(updatedMatch)
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return next(new AppError(error.errors[0].message, 400))
-    }
-    next(error)
-  }
-})
-
-// Confirm match result
-router.post('/:id/confirm', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const { id } = req.params
-
-    const match = await prisma.match.findUnique({
-      where: { id },
-      include: {
-        player1: true,
-        player2: true,
-      },
-    })
-
-    if (!match) {
-      throw new AppError('Match not found', 404)
-    }
-
-    if (match.player1Id !== req.user!.id && match.player2Id !== req.user!.id) {
-      throw new AppError('You are not a participant in this match', 403)
-    }
-
-    if (match.status !== 'AWAITING_CONFIRM') {
-      throw new AppError('Match is not awaiting confirmation', 400)
-    }
-
-    // The person who entered the score cannot confirm it
-    if (match.createdById === req.user!.id) {
-      throw new AppError('You cannot confirm your own score submission', 400)
-    }
-
-    if (match.player1Score === null || match.player2Score === null) {
-      throw new AppError('Match scores are not set', 400)
-    }
-
-    // Calculate new MMR ratings
-    const player1Won = match.player1Score > match.player2Score
-    const { newRating1, newRating2 } = calculateNewRatings(
-      match.player1.mmr,
-      match.player2.mmr,
-      player1Won
-    )
-
-    // Update match and player ratings in transaction
-    const [updatedMatch] = await prisma.$transaction([
-      prisma.match.update({
+      const updatedMatch = await prisma.match.update({
         where: { id },
         data: {
-          status: 'CONFIRMED',
-          confirmedById: req.user!.id,
+          player1Score: data.player1Score,
+          player2Score: data.player2Score,
+          status: 'AWAITING_CONFIRM',
+          createdById: req.user!.id,
         },
         include: {
           player1: { select: { id: true, username: true, mmr: true } },
           player2: { select: { id: true, username: true, mmr: true } },
         },
-      }),
-      prisma.user.update({
-        where: { id: match.player1Id },
-        data: { mmr: newRating1 },
-      }),
-      prisma.user.update({
-        where: { id: match.player2Id },
-        data: { mmr: newRating2 },
-      }),
-    ])
+      })
 
-    res.json({
-      ...updatedMatch,
-      mmrChanges: {
-        player1: { old: match.player1.mmr, new: newRating1 },
-        player2: { old: match.player2.mmr, new: newRating2 },
-      },
-    })
-  } catch (error) {
-    next(error)
+      res.json(updatedMatch)
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return next(new AppError(error.errors[0].message, 400))
+      }
+      next(error)
+    }
   }
-})
+)
+
+// Confirm match result
+router.post(
+  '/:id/confirm',
+  authenticate,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params
+
+      const match = await prisma.match.findUnique({
+        where: { id },
+        include: {
+          player1: true,
+          player2: true,
+        },
+      })
+
+      if (!match) {
+        throw new AppError('Match not found', 404)
+      }
+
+      if (match.player1Id !== req.user!.id && match.player2Id !== req.user!.id) {
+        throw new AppError('You are not a participant in this match', 403)
+      }
+
+      if (match.status !== 'AWAITING_CONFIRM') {
+        throw new AppError('Match is not awaiting confirmation', 400)
+      }
+
+      // The person who entered the score cannot confirm it
+      if (match.createdById === req.user!.id) {
+        throw new AppError('You cannot confirm your own score submission', 400)
+      }
+
+      if (match.player1Score === null || match.player2Score === null) {
+        throw new AppError('Match scores are not set', 400)
+      }
+
+      // Calculate new MMR ratings
+      const player1Won = match.player1Score > match.player2Score
+      const { newRating1, newRating2 } = calculateNewRatings(
+        match.player1.mmr,
+        match.player2.mmr,
+        player1Won
+      )
+
+      // Update match and player ratings in transaction
+      const [updatedMatch] = await prisma.$transaction([
+        prisma.match.update({
+          where: { id },
+          data: {
+            status: 'CONFIRMED',
+            confirmedById: req.user!.id,
+          },
+          include: {
+            player1: { select: { id: true, username: true, mmr: true } },
+            player2: { select: { id: true, username: true, mmr: true } },
+          },
+        }),
+        prisma.user.update({
+          where: { id: match.player1Id },
+          data: { mmr: newRating1 },
+        }),
+        prisma.user.update({
+          where: { id: match.player2Id },
+          data: { mmr: newRating2 },
+        }),
+      ])
+
+      res.json({
+        ...updatedMatch,
+        mmrChanges: {
+          player1: { old: match.player1.mmr, new: newRating1 },
+          player2: { old: match.player2.mmr, new: newRating2 },
+        },
+      })
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 
 // Get single match
 router.get('/:id', authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
