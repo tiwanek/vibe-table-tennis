@@ -1,6 +1,7 @@
 {
   "name": "server",
   "version": "1.0.0",
+  "type": "module",
   "description": "Table tennis tournament API server",
   "main": "dist/index.js",
   "scripts": {
