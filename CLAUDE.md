@@ -213,7 +213,7 @@ npm run build
 
 ```bash
 # Build and run with Docker Compose (app only, port 3001)
-docker-compose -f docker-compose.simple.yml up --build
+docker compose -f docker-compose.simple.yml up --build
 
 # Access at http://localhost:3001
 ```
@@ -225,7 +225,7 @@ docker-compose -f docker-compose.simple.yml up --build
 export JWT_SECRET="your-secure-secret-here"
 
 # Build and run
-docker-compose up --build
+docker compose up --build
 
 # Access at http://localhost (port 80)
 ```
@@ -240,13 +240,13 @@ docker build -t vibe-table-tennis .
 docker run -p 3001:3001 -e JWT_SECRET=your-secret vibe-table-tennis
 
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # Stop containers
-docker-compose down
+docker compose down
 
 # Remove data volume (reset database)
-docker-compose down -v
+docker compose down -v
 ```
 
 ## API Endpoints
