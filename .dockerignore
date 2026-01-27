@@ -1,0 +1,48 @@
+# Dependencies
+node_modules
+client/node_modules
+server/node_modules
+
+# Build outputs (rebuilt in container)
+client/dist
+server/dist
+
+# Development files
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# IDE and editor
+.idea
+.vscode
+*.swp
+*.swo
+
+# Testing
+e2e
+coverage
+playwright-report
+test-results
+
+# Documentation
+*.md
+!README.md
+
+# Docker files (not needed in build context)
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Database files
+*.db
+*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,5 +1,5 @@
 # Simple Docker Compose - just the app without nginx
-# Run with: docker-compose -f docker-compose.simple.yml up
+# Run with: docker compose -f docker-compose.simple.yml up
 
 services:
   app:

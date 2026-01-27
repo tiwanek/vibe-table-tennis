@@ -17,8 +17,11 @@ COPY server/ ./
 RUN npx prisma generate
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine AS production
+# Production stage - use slim (Debian-based) for better Prisma/OpenSSL compatibility
+FROM node:20-slim AS production
+
+# Install OpenSSL for Prisma and wget for healthcheck
+RUN apt-get update && apt-get install -y openssl ca-certificates wget && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
